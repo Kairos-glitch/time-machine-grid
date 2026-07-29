@@ -15,6 +15,32 @@
         return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
     }
 
+    // Funzione centralizzata per posizionare il tooltip ovunque (mouse o touch) evitando i bordi
+    function mostraTooltip(testoHtml, x, y) {
+        tooltip.innerHTML = testoHtml;
+        tooltip.style.display = 'block';
+
+        const tooltipWidth = tooltip.offsetWidth || 160;
+        const tooltipHeight = tooltip.offsetHeight || 60;
+        const padding = 15;
+
+        let posX = x + 10;
+        let posY = y + 10;
+
+        // Se esce dal bordo destro dello schermo, spostalo a sinistra
+        if (posX + tooltipWidth > window.innerWidth - padding) {
+            posX = x - tooltipWidth - 10;
+        }
+
+        // Se esce dal bordo inferiore, spostalo leggermente sopra
+        if (posY + tooltipHeight > window.innerHeight - padding) {
+            posY = y - tooltipHeight - 10;
+        }
+
+        tooltip.style.left = posX + 'px';
+        tooltip.style.top = posY + 'px';
+    }
+
     async function caricaPixel() {
         let datiVenduti = new Map();
         try {
@@ -43,16 +69,25 @@
             
             if (datiVenduti.has(dataStringa)) {
                 pixel.classList.add('venduto');
-                // Assegna colore casuale
                 const randomColor = palette[Math.floor(Math.random() * palette.length)];
                 pixel.style.backgroundColor = randomColor;
                 
-                pixel.addEventListener('mouseenter', () => {
-                    tooltip.style.display = 'block';
-                    tooltip.innerHTML = `<strong>${dataStringa}</strong><br>${datiVenduti.get(dataStringa)}`;
+                // Desktop (mouse)
+                pixel.addEventListener('mouseenter', (e) => {
+                    const rect = pixel.getBoundingClientRect();
+                    mostraTooltip(`<strong>${dataStringa}</strong><br>${datiVenduti.get(dataStringa)}`, rect.left + rect.width / 2, rect.top);
                 });
+                
+                // Mobile (touch)
+                pixel.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const rect = pixel.getBoundingClientRect();
+                    mostraTooltip(`<strong>${dataStringa}</strong><br>${datiVenduti.get(dataStringa)}`, rect.left + rect.width / 2, rect.top);
+                });
+
             } else {
-                pixel.addEventListener('click', () => {
+                pixel.addEventListener('click', (e) => {
+                    e.stopPropagation();
                     tooltip.style.display = 'none';
                     document.getElementById('data-scelta').innerText = `Date: ${dataStringa}`;
                     modal.style.display = 'flex';
@@ -62,36 +97,26 @@
                         modal.style.display = 'none';
                     };
                 });
+                
                 pixel.addEventListener('mouseenter', () => {
-                    tooltip.style.display = 'block';
-                    tooltip.innerText = dataStringa;
+                    const rect = pixel.getBoundingClientRect();
+                    mostraTooltip(dataStringa, rect.left + rect.width / 2, rect.top);
                 });
             }
-            pixel.addEventListener('mousemove', (e) => { tooltip.style.left = (e.clientX + 10) + 'px'; tooltip.style.top = (e.clientY + 10) + 'px'; });
-            pixel.addEventListener('mouseleave', () => tooltip.style.display = 'none');
+
+            pixel.addEventListener('mousemove', (e) => {
+                mostraTooltip(tooltip.innerHTML, e.clientX, e.clientY);
+            });
+
+            pixel.addEventListener('mouseleave', () => {
+                // Su mobile lasciamo il tooltip visibile finché non si clicca altrove, o lo chiudiamo al mouseleave
+            });
+
             tabellone.appendChild(pixel);
         }
-        document.getElementById('btn-chiudi').onclick = () => modal.style.display = 'none';
-    }
 
-    window.cambiaData = (giorni) => {
-        const classeAnim = giorni > 0 ? 'slide-left' : 'slide-right';
-        tabellone.classList.add(classeAnim);
-        
-        setTimeout(() => {
-            dataCorrenteVisualizzata.setDate(dataCorrenteVisualizzata.getDate() + giorni);
-            tabellone.style.transition = 'none';
-            tabellone.classList.remove(classeAnim);
-            tabellone.style.opacity = '0';
+        // Chiudi il tooltip se si clicca fuori dai pixel (utile su mobile)
+        document.addEventListener('click', () => {
+            tooltip.style.display = 'none';
+        });
             
-            caricaPixel();
-            
-            setTimeout(() => {
-                tabellone.style.transition = 'transform 0.6s ease-in-out, opacity 0.6s ease-in-out';
-                tabellone.style.opacity = '1';
-            }, 50);
-        }, 600);
-    };
-
-    caricaPixel();
-})();
