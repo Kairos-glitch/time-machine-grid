@@ -5,8 +5,14 @@
     const counter = document.getElementById('counter');
     const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbzDegTFimnMMFQsdTukR360jPfk3byurBwo_GPfiPKGVQ3UAwiZ8CqmiF9PoINOhxpf/exec";
 
-    const palette = ['#FF5733', '#33FF57', '#3357FF', '#F333FF', '#FF33A8', '#33FFF3'];
     let dataCorrenteVisualizzata = new Date();
+
+    // Sincronizzazione visiva del selettore colore esadecimale
+    const inputColore = document.getElementById('input-colore');
+    const coloreHex = document.getElementById('colore-hex');
+    inputColore.addEventListener('input', (e) => {
+        coloreHex.innerText = e.target.value;
+    });
 
     function formattaDataItaliana(data) {
         let d = new Date(data);
@@ -18,18 +24,15 @@
         tooltip.style.display = 'block';
 
         const screenWidth = window.innerWidth;
-        const tooltipWidth = 250; // Larghezza massima stimata del tooltip via CSS
+        const tooltipWidth = 250;
 
-        // Posizionamento di base a DESTRA del pixel
         let leftPos = pixelRect.right + 8;
         let topPos = pixelRect.top + window.scrollY;
 
-        // Se a destra non c'è abbastanza spazio, sposta il box a SINISTRA del pixel
         if (leftPos + tooltipWidth > screenWidth - 15) {
             leftPos = pixelRect.left - tooltipWidth - 8;
         }
 
-        // Controllo di sicurezza per non uscire dal bordo sinistro dello schermo
         if (leftPos < 10) {
             leftPos = 10;
         }
@@ -39,6 +42,7 @@
     }
 
     async function caricaPixel() {
+        // Mappa per memorizzare: Data -> { messaggio, colore }
         let datiVenduti = new Map();
         
         try {
@@ -47,16 +51,18 @@
             datiRaw.forEach(riga => {
                 if (riga[0]) {
                     let data = formattaDataItaliana(riga[0]);
-                    datiVenduti.set(data, riga[1] || "Purchased!");
+                    datiVenduti.set(data, {
+                        messaggio: riga[1] || "Purchased!",
+                        colore: riga[2] || "#3b82f6" // Se c'è il colore salvato nel foglio, lo usa, altrimenti di default
+                    });
                 }
             });
             counter.innerText = `Pixels claimed: ${datiVenduti.size}/400`;
         } catch (e) {
-            console.error("Errore caricamento dati (continuo comunque a mostrare la griglia):", e);
+            console.error("Errore caricamento dati:", e);
             counter.innerText = `Pixels claimed: 0/400`;
         }
 
-        // Generazione griglia garantita in ogni caso
         tabellone.innerHTML = "";
         const dataInizio = new Date(dataCorrenteVisualizzata); 
         
@@ -70,28 +76,43 @@
             
             if (datiVenduti.has(dataStringa)) {
                 pixel.classList.add('venduto');
-                const randomColor = palette[Math.floor(Math.random() * palette.length)];
-                pixel.style.backgroundColor = randomColor;
+                const pixelData = datiVenduti.get(dataStringa);
+                pixel.style.backgroundColor = pixelData.colore;
                 
                 pixel.addEventListener('mouseenter', () => {
                     const rect = pixel.getBoundingClientRect();
-                    mostraTooltip(`<strong>${dataStringa}</strong><br>${datiVenduti.get(dataStringa)}`, rect);
+                    mostraTooltip(`<strong>${dataStringa}</strong><br>${pixelData.messaggio}`, rect);
                 });
                 
                 pixel.addEventListener('click', (e) => {
                     e.stopPropagation();
                     const rect = pixel.getBoundingClientRect();
-                    mostraTooltip(`<strong>${dataStringa}</strong><br>${datiVenduti.get(dataStringa)}`, rect);
+                    mostraTooltip(`<strong>${dataStringa}</strong><br>${pixelData.messaggio}`, rect);
                 });
             } else {
                 pixel.addEventListener('click', (e) => {
                     e.stopPropagation();
                     tooltip.style.display = 'none';
                     document.getElementById('data-scelta').innerText = `Date: ${dataStringa}`;
+                    
+                    // Reset campi modale
+                    document.getElementById('input-messaggio').value = "";
+                    document.getElementById('input-email').value = "";
+                    document.getElementById('input-password').value = "";
+                    
                     modal.style.display = 'flex';
+                    
                     document.getElementById('btn-conferma').onclick = () => {
                         const msg = document.getElementById('input-messaggio').value || "No message";
-                        window.open(`https://paypal.me/nickpetru/2?note=${encodeURIComponent(dataStringa + " - " + msg)}`, "_blank");
+                        const coloreScelto = document.getElementById('input-colore').value;
+                        const email = document.getElementById('input-email').value;
+                        const pwd = document.getElementById('input-password').value;
+
+                        // Strutturiamo la nota PayPal in modo che contenga tutte le info necessarie per lo Script Google
+                        // Formato: DATA | MESSAGGIO | COLORE | EMAIL | PASSWORD
+                        const payloadNota = `${dataStringa} | Msg: ${msg} | Color: ${coloreScelto} | Email: ${email} | Pwd: ${pwd}`;
+                        
+                        window.open(`https://paypal.me/nickpetru/2?note=${encodeURIComponent(payloadNota)}`, "_blank");
                         modal.style.display = 'none';
                     };
                 });
@@ -126,10 +147,10 @@
             caricaPixel();
             
             setTimeout(() => {
-                tabellone.style.transition = 'transform 0.6s ease-in-out, opacity 0.6s ease-in-out';
+                tabellone.style.transition = 'transform 0.5s ease-in-out, opacity 0.5s ease-in-out';
                 tabellone.style.opacity = '1';
             }, 50);
-        }, 600);
+        }, 500);
     };
 
     caricaPixel();
