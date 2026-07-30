@@ -1,7 +1,8 @@
 (function() {
     const tabellone = document.getElementById('tabellone');
     const tooltip = document.getElementById('tooltip');
-    const modal = document.getElementById('modal-acquisto');
+    const modalAcquisto = document.getElementById('modal-acquisto');
+    const modalAccount = document.getElementById('modal-account');
     const counter = document.getElementById('counter');
     const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbzDegTFimnMMFQsdTukR360jPfk3byurBwo_GPfiPKGVQ3UAwiZ8CqmiF9PoINOhxpf/exec";
 
@@ -10,7 +11,82 @@
     let prezzoAttuale = 1.00;
     let codiceScontoApplicato = "";
 
-    // Gestione selezione colore dalla nuova palette pulita
+    // Stato utente corrente salvato nel browser (simulato o collegato all'account)
+    let utenteCorrente = localStorage.getItem('tc_user_email') || null;
+
+    // Aggiorna etichetta pulsante account in base allo stato
+    const btnApriAccount = document.getElementById('btn-apri-account');
+    function aggiornaStatoAccountUI() {
+        if (utenteCorrente) {
+            btnApriAccount.innerText = utenteCorrente.split('@')[0] + " (Logout)";
+        } else {
+            btnApriAccount.innerText = "Account";
+        }
+    }
+    aggiornaStatoAccountUI();
+
+    // Gestione Modale Account (Login / Registrazione)
+    let isModalLoginMode = true;
+    btnApriAccount.addEventListener('click', () => {
+        if (utenteCorrente) {
+            // Se è già loggato, il click fa il logout rapido
+            if (confirm(`Do you want to log out from ${utenteCorrente}?`)) {
+                localStorage.removeItem('tc_user_email');
+                utenteCorrente = null;
+                aggiornaStatoAccountUI();
+                caricaPixel();
+            }
+        } else {
+            modalAccount.style.display = 'flex';
+        }
+    });
+
+    document.getElementById('acc-btn-chiudi').onclick = () => modalAccount.style.display = 'none';
+
+    const accToggleMode = document.getElementById('acc-toggle-mode');
+    const accTitle = document.getElementById('account-title');
+    const accBtnAzione = document.getElementById('acc-btn-azione');
+
+    accToggleMode.addEventListener('click', (e) => {
+        e.preventDefault();
+        isModalLoginMode = !isModalLoginMode;
+        if (isModalLoginMode) {
+            accTitle.innerText = "USER LOGIN";
+            accBtnAzione.innerText = "LOG IN";
+            accToggleMode.innerText = "Don't have an account? Sign up";
+        } else {
+            accTitle.innerText = "CREATE ACCOUNT";
+            accBtnAzione.innerText = "SIGN UP";
+            accToggleMode.innerText = "Already have an account? Log in";
+        }
+    });
+
+    accBtnAzione.addEventListener('click', () => {
+        const email = document.getElementById('acc-email').value.trim();
+        const pwd = document.getElementById('acc-password').value.trim();
+        const feedback = document.getElementById('account-feedback');
+
+        if (!email || !pwd) {
+            feedback.style.color = "#ef4444";
+            feedback.innerText = "Please fill in all fields.";
+            return;
+        }
+
+        // Salviamo l'email nel localStorage come sessione attiva
+        localStorage.setItem('tc_user_email', email);
+        utenteCorrente = email;
+        aggiornaStatoAccountUI();
+        modalAccount.style.display = 'none';
+        
+        // Reset campi
+        document.getElementById('acc-email').value = "";
+        document.getElementById('acc-password').value = "";
+        feedback.innerText = "";
+        
+        caricaPixel();
+    });
+
+    // Gestione Palette Colori
     const colorDots = document.querySelectorAll('.color-dot');
     const customColorInput = document.getElementById('input-colore-custom');
 
@@ -27,7 +103,7 @@
         coloreSelezionato = e.target.value;
     });
 
-    // Gestione Codice Sconto (es. promo "TIKTOK" sconto 50%)
+    // Gestione Codice Sconto
     const btnPromo = document.getElementById('btn-applica-promo');
     const inputPromo = document.getElementById('input-promo');
     const promoFeedback = document.getElementById('promo-feedback');
@@ -88,7 +164,8 @@
                     let data = formattaDataItaliana(riga[0]);
                     datiVenduti.set(data, {
                         messaggio: riga[1] || "Purchased!",
-                        colore: riga[2] || "#38bdf8"
+                        colore: riga[2] || "#38bdf8",
+                        proprietario: riga[3] || "" // Email del proprietario salvata sul foglio
                     });
                 }
             });
@@ -114,50 +191,79 @@
                 const pixelData = datiVenduti.get(dataStringa);
                 pixel.style.backgroundColor = pixelData.colore;
                 
+                // Controllo se il pixel appartiene all'utente loggato
+                const eMioPixel = utenteCorrente && pixelData.proprietario.toLowerCase() === utenteCorrente.toLowerCase();
+
                 pixel.addEventListener('mouseenter', () => {
                     const rect = pixel.getBoundingClientRect();
-                    mostraTooltip(`<strong>${dataStringa}</strong><br>${pixelData.messaggio}`, rect);
+                    let infoExtra = eMioPixel ? `<br><span style="color:var(--accent-color); font-weight:bold;">[YOUR PIXEL - Click to Edit]</span>` : "";
+                    mostraTooltip(`<strong>${dataStringa}</strong><br>${pixelData.messaggio}${infoExtra}`, rect);
                 });
                 
                 pixel.addEventListener('click', (e) => {
                     e.stopPropagation();
                     const rect = pixel.getBoundingClientRect();
-                    mostraTooltip(`<strong>${dataStringa}</strong><br>${pixelData.messaggio}`, rect);
+                    
+                    if (eMioPixel) {
+                        // MODIFICA PIXEL PROPRIO (EDIT)
+                        tooltip.style.display = 'none';
+                        document.getElementById('modal-main-title').innerText = "EDIT YOUR PIXEL";
+                        document.getElementById('data-scelta').innerText = `Date: ${dataStringa}`;
+                        document.getElementById('input-messaggio').value = pixelData.messaggio;
+                        document.getElementById('promo-section').style.display = 'none'; // Niente promo in modifica
+                        
+                        modalAcquisto.style.display = 'flex';
+                        
+                        document.getElementById('btn-conferma').innerText = "UPDATE PIXEL";
+                        document.getElementById('btn-conferma').onclick = () => {
+                            const msgUpdate = document.getElementById('input-messaggio').value || "Updated message";
+                            // Invio PayPal speciale o richiesta di aggiornamento registrata nella nota
+                            const payloadNota = `UPDATE | ${dataStringa} | Msg: ${msgUpdate} | Color: ${coloreSelezionato} | Email: ${utenteCorrente}`;
+                            window.open(`https://paypal.me/nickpetru/0?note=${encodeURIComponent(payloadNota)}`, "_blank");
+                            modalAcquisto.style.display = 'none';
+                        };
+                    } else {
+                        // PIXEL DI QUALCUN ALTRO -> Mostra solo info
+                        mostraTooltip(`<strong>${dataStringa}</strong><br>${pixelData.messaggio}`, rect);
+                    }
                 });
             } else {
+                // PIXEL VUOTO -> ACQUISTO
                 pixel.addEventListener('click', (e) => {
                     e.stopPropagation();
                     tooltip.style.display = 'none';
+
+                    if (!utenteCorrente) {
+                        alert("Please log in or create an account first using the top-right button to claim a pixel.");
+                        modalAccount.style.display = 'flex';
+                        return;
+                    }
+
+                    document.getElementById('modal-main-title').innerText = "CLAIM YOUR PIXEL";
                     document.getElementById('data-scelta').innerText = `Date: ${dataStringa}`;
-                    
-                    // Reset campi modale
                     document.getElementById('input-messaggio').value = "";
-                    document.getElementById('input-email').value = "";
-                    document.getElementById('input-password').value = "";
                     inputPromo.value = "";
                     promoFeedback.innerText = "";
                     prezzoAttuale = 1.00;
                     prezzoFinaleSpan.innerText = "1€";
                     codiceScontoApplicato = "";
+                    document.getElementById('promo-section').style.display = 'block';
+                    document.getElementById('btn-conferma').innerText = `PAY 1€`;
                     
-                    modal.style.display = 'flex';
+                    modalAcquisto.style.display = 'flex';
                     
                     document.getElementById('btn-conferma').onclick = () => {
                         const msg = document.getElementById('input-messaggio').value || "No message";
-                        const email = document.getElementById('input-email').value;
-                        const pwd = document.getElementById('input-password').value;
-
-                        // Nota strutturata per PayPal comprensiva di prezzo/sconto e dati account
-                        const payloadNota = `${dataStringa} | Msg: ${msg} | Color: ${coloreSelezionato} | Email: ${email} | Pwd: ${pwd} | Promo: ${codiceScontoApplicato || 'None'}`;
+                        const payloadNota = `${dataStringa} | Msg: ${msg} | Color: ${coloreSelezionato} | Email: ${utenteCorrente} | Promo: ${codiceScontoApplicato || 'None'}`;
                         
                         window.open(`https://paypal.me/nickpetru/${prezzoAttuale}?note=${encodeURIComponent(payloadNota)}`, "_blank");
-                        modal.style.display = 'none';
+                        modalAcquisto.style.display = 'none';
                     };
                 });
                 
                 pixel.addEventListener('mouseenter', () => {
                     const rect = pixel.getBoundingClientRect();
-                    mostraTooltip(dataStringa, rect);
+                    mostraTooltip(`${dataStringa} (Available)`, rect);
                 });
             }
 
@@ -168,7 +274,7 @@
             tooltip.style.display = 'none';
         });
 
-        document.getElementById('btn-chiudi').onclick = () => modal.style.display = 'none';
+        document.getElementById('btn-chiudi').onclick = () => modalAcquisto.style.display = 'none';
     }
 
     window.cambiaData = (giorni) => {
@@ -193,3 +299,4 @@
 
     caricaPixel();
 })();
+            
