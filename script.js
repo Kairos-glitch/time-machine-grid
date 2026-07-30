@@ -13,26 +13,29 @@
         return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
     }
 
-    function mostraTooltip(testoHtml, x, y) {
+    function mostraTooltip(testoHtml, pixelRect) {
         tooltip.innerHTML = testoHtml;
         tooltip.style.display = 'block';
 
-        const tooltipWidth = tooltip.offsetWidth || 160;
-        const tooltipHeight = tooltip.offsetHeight || 60;
-        const padding = 15;
+        const screenWidth = window.innerWidth;
+        const tooltipWidth = 250; // Larghezza massima stimata del tooltip via CSS
 
-        let posX = x + 10;
-        let posY = y + 10;
+        // Posizionamento di base a DESTRA del pixel
+        let leftPos = pixelRect.right + 8;
+        let topPos = pixelRect.top + window.scrollY;
 
-        if (posX + tooltipWidth > window.innerWidth - padding) {
-            posX = x - tooltipWidth - 10;
-        }
-        if (posY + tooltipHeight > window.innerHeight - padding) {
-            posY = y - tooltipHeight - 10;
+        // Se a destra non c'è abbastanza spazio, sposta il box a SINISTRA del pixel
+        if (leftPos + tooltipWidth > screenWidth - 15) {
+            leftPos = pixelRect.left - tooltipWidth - 8;
         }
 
-        tooltip.style.left = posX + 'px';
-        tooltip.style.top = posY + 'px';
+        // Controllo di sicurezza per non uscire dal bordo sinistro dello schermo
+        if (leftPos < 10) {
+            leftPos = 10;
+        }
+
+        tooltip.style.left = leftPos + 'px';
+        tooltip.style.top = topPos + 'px';
     }
 
     async function caricaPixel() {
@@ -70,15 +73,15 @@
                 const randomColor = palette[Math.floor(Math.random() * palette.length)];
                 pixel.style.backgroundColor = randomColor;
                 
-                pixel.addEventListener('mouseenter', (e) => {
+                pixel.addEventListener('mouseenter', () => {
                     const rect = pixel.getBoundingClientRect();
-                    mostraTooltip(`<strong>${dataStringa}</strong><br>${datiVenduti.get(dataStringa)}`, rect.left + rect.width / 2, rect.top);
+                    mostraTooltip(`<strong>${dataStringa}</strong><br>${datiVenduti.get(dataStringa)}`, rect);
                 });
                 
                 pixel.addEventListener('click', (e) => {
                     e.stopPropagation();
                     const rect = pixel.getBoundingClientRect();
-                    mostraTooltip(`<strong>${dataStringa}</strong><br>${datiVenduti.get(dataStringa)}`, rect.left + rect.width / 2, rect.top);
+                    mostraTooltip(`<strong>${dataStringa}</strong><br>${datiVenduti.get(dataStringa)}`, rect);
                 });
             } else {
                 pixel.addEventListener('click', (e) => {
@@ -95,13 +98,9 @@
                 
                 pixel.addEventListener('mouseenter', () => {
                     const rect = pixel.getBoundingClientRect();
-                    mostraTooltip(dataStringa, rect.left + rect.width / 2, rect.top);
+                    mostraTooltip(dataStringa, rect);
                 });
             }
-
-            pixel.addEventListener('mousemove', (e) => {
-                mostraTooltip(tooltip.innerHTML, e.clientX, e.clientY);
-            });
 
             tabellone.appendChild(pixel);
         }
@@ -135,4 +134,3 @@
 
     caricaPixel();
 })();
-              
