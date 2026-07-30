@@ -19,11 +19,31 @@
 
 <div id="tooltip" class="tooltip"></div>
 
+<!-- MODALE ACQUISTO / CONFIGURAZIONE PIXEL -->
 <div id="modal-acquisto" class="modal-hidden">
     <div class="modal-content">
-        <h3>BUY YOUR TIME PIXEL</h3>
-        <p id="data-scelta" style="font-weight: bold;"></p>
-        <input type="text" id="input-messaggio" placeholder="Write your message..." maxlength="50">
+        <h3>CLAIM YOUR PIXEL</h3>
+        <p id="data-scelta" style="font-weight: bold; margin-bottom: 15px;"></p>
+        
+        <div class="input-group">
+            <label>Your Message (max 150 chars):</label>
+            <textarea id="input-messaggio" placeholder="Write your message, joke or secret..." maxlength="150" rows="3"></textarea>
+        </div>
+
+        <div class="input-group">
+            <label>Choose your Pixel Color:</label>
+            <div class="color-picker-container">
+                <input type="color" id="input-colore" value="#3b82f6">
+                <span id="colore-hex">#3b82f6</span>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label>Account Access (to edit later):</label>
+            <input type="email" id="input-email" placeholder="Your email">
+            <input type="password" id="input-password" placeholder="Create a password">
+        </div>
+
         <div class="modal-btns">
             <button id="btn-conferma">PAY NOW (1€)</button>
             <button id="btn-chiudi">CANCEL</button>
@@ -35,11 +55,11 @@
     <h1>TIME CAPSULE</h1>
     
     <div class="nav-controls">
-        <button onclick="cambiaData(-400)">← INDIETRO</button>
-        <button onclick="cambiaData(400)">AVANTI →</button>
+        <button onclick="cambiaData(-400)">← PREV</button>
+        <button onclick="cambiaData(400)">NEXT →</button>
     </div>
 
-    <div id="counter" style="margin-bottom: 20px; color: #fff; font-size: 14px;">
+    <div id="counter">
         Pixels claimed: <span id="pixel-count">0</span>/400
     </div>
 
