@@ -11,10 +11,8 @@
     let prezzoAttuale = 1.00;
     let codiceScontoApplicato = "";
 
-    // Stato utente corrente salvato nel browser (simulato o collegato all'account)
     let utenteCorrente = localStorage.getItem('tc_user_email') || null;
 
-    // Aggiorna etichetta pulsante account in base allo stato
     const btnApriAccount = document.getElementById('btn-apri-account');
     function aggiornaStatoAccountUI() {
         if (utenteCorrente) {
@@ -25,11 +23,9 @@
     }
     aggiornaStatoAccountUI();
 
-    // Gestione Modale Account (Login / Registrazione)
     let isModalLoginMode = true;
     btnApriAccount.addEventListener('click', () => {
         if (utenteCorrente) {
-            // Se è già loggato, il click fa il logout rapido
             if (confirm(`Do you want to log out from ${utenteCorrente}?`)) {
                 localStorage.removeItem('tc_user_email');
                 utenteCorrente = null;
@@ -72,13 +68,11 @@
             return;
         }
 
-        // Salviamo l'email nel localStorage come sessione attiva
         localStorage.setItem('tc_user_email', email);
         utenteCorrente = email;
         aggiornaStatoAccountUI();
         modalAccount.style.display = 'none';
         
-        // Reset campi
         document.getElementById('acc-email').value = "";
         document.getElementById('acc-password').value = "";
         feedback.innerText = "";
@@ -86,7 +80,6 @@
         caricaPixel();
     });
 
-    // Gestione Palette Colori
     const colorDots = document.querySelectorAll('.color-dot');
     const customColorInput = document.getElementById('input-colore-custom');
 
@@ -103,7 +96,6 @@
         coloreSelezionato = e.target.value;
     });
 
-    // Gestione Codice Sconto
     const btnPromo = document.getElementById('btn-applica-promo');
     const inputPromo = document.getElementById('input-promo');
     const promoFeedback = document.getElementById('promo-feedback');
@@ -165,7 +157,7 @@
                     datiVenduti.set(data, {
                         messaggio: riga[1] || "Purchased!",
                         colore: riga[2] || "#38bdf8",
-                        proprietario: riga[3] || "" // Email del proprietario salvata sul foglio
+                        proprietario: riga[3] || ""
                     });
                 }
             });
@@ -191,7 +183,6 @@
                 const pixelData = datiVenduti.get(dataStringa);
                 pixel.style.backgroundColor = pixelData.colore;
                 
-                // Controllo se il pixel appartiene all'utente loggato
                 const eMioPixel = utenteCorrente && pixelData.proprietario.toLowerCase() === utenteCorrente.toLowerCase();
 
                 pixel.addEventListener('mouseenter', () => {
@@ -205,36 +196,37 @@
                     const rect = pixel.getBoundingClientRect();
                     
                     if (eMioPixel) {
-                        // MODIFICA PIXEL PROPRIO (EDIT)
                         tooltip.style.display = 'none';
                         document.getElementById('modal-main-title').innerText = "EDIT YOUR PIXEL";
                         document.getElementById('data-scelta').innerText = `Date: ${dataStringa}`;
                         document.getElementById('input-messaggio').value = pixelData.messaggio;
-                        document.getElementById('promo-section').style.display = 'none'; // Niente promo in modifica
+                        document.getElementById('promo-section').style.display = 'none';
                         
                         modalAcquisto.style.display = 'flex';
                         
                         document.getElementById('btn-conferma').innerText = "UPDATE PIXEL";
                         document.getElementById('btn-conferma').onclick = () => {
                             const msgUpdate = document.getElementById('input-messaggio').value || "Updated message";
-                            // Invio PayPal speciale o richiesta di aggiornamento registrata nella nota
                             const payloadNota = `UPDATE | ${dataStringa} | Msg: ${msgUpdate} | Color: ${coloreSelezionato} | Email: ${utenteCorrente}`;
                             window.open(`https://paypal.me/nickpetru/0?note=${encodeURIComponent(payloadNota)}`, "_blank");
                             modalAcquisto.style.display = 'none';
                         };
                     } else {
-                        // PIXEL DI QUALCUN ALTRO -> Mostra solo info
                         mostraTooltip(`<strong>${dataStringa}</strong><br>${pixelData.messaggio}`, rect);
                     }
                 });
             } else {
-                // PIXEL VUOTO -> ACQUISTO
                 pixel.addEventListener('click', (e) => {
                     e.stopPropagation();
                     tooltip.style.display = 'none';
 
+                    // Se non è loggato, apre direttamente la modale account a tema anziché l'alert di sistema
                     if (!utenteCorrente) {
-                        alert("Please log in or create an account first using the top-right button to claim a pixel.");
+                        isModalLoginMode = false; // Imposta di default su "Crea account" o lascia login
+                        accTitle.innerText = "CREATE ACCOUNT";
+                        accBtnAzione.innerText = "SIGN UP";
+                        accToggleMode.innerText = "Already have an account? Log in";
+                        document.getElementById('account-subtitle').innerText = "Please sign up or log in to claim this pixel.";
                         modalAccount.style.display = 'flex';
                         return;
                     }
