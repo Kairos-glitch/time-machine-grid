@@ -6,12 +6,48 @@
     const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbzDegTFimnMMFQsdTukR360jPfk3byurBwo_GPfiPKGVQ3UAwiZ8CqmiF9PoINOhxpf/exec";
 
     let dataCorrenteVisualizzata = new Date();
+    let coloreSelezionato = "#38bdf8";
+    let prezzoAttuale = 1.00;
+    let codiceScontoApplicato = "";
 
-    // Sincronizzazione visiva del selettore colore esadecimale
-    const inputColore = document.getElementById('input-colore');
-    const coloreHex = document.getElementById('colore-hex');
-    inputColore.addEventListener('input', (e) => {
-        coloreHex.innerText = e.target.value;
+    // Gestione selezione colore dalla nuova palette pulita
+    const colorDots = document.querySelectorAll('.color-dot');
+    const customColorInput = document.getElementById('input-colore-custom');
+
+    colorDots.forEach(dot => {
+        dot.addEventListener('click', () => {
+            colorDots.forEach(d => d.classList.remove('active'));
+            dot.classList.add('active');
+            coloreSelezionato = dot.getAttribute('data-color');
+        });
+    });
+
+    customColorInput.addEventListener('input', (e) => {
+        colorDots.forEach(d => d.classList.remove('active'));
+        coloreSelezionato = e.target.value;
+    });
+
+    // Gestione Codice Sconto (es. promo "TIKTOK" sconto 50%)
+    const btnPromo = document.getElementById('btn-applica-promo');
+    const inputPromo = document.getElementById('input-promo');
+    const promoFeedback = document.getElementById('promo-feedback');
+    const prezzoFinaleSpan = document.getElementById('prezzo-finale');
+
+    btnPromo.addEventListener('click', () => {
+        const codice = inputPromo.value.trim().toUpperCase();
+        if (codice === "TIKTOK" || codice === "TIME50") {
+            prezzoAttuale = 0.50;
+            codiceScontoApplicato = codice;
+            prezzoFinaleSpan.innerText = "0.50€";
+            promoFeedback.style.color = "#22c55e";
+            promoFeedback.innerText = "Promo applied! 50% off";
+        } else {
+            prezzoAttuale = 1.00;
+            codiceScontoApplicato = "";
+            prezzoFinaleSpan.innerText = "1€";
+            promoFeedback.style.color = "#ef4444";
+            promoFeedback.innerText = "Invalid promo code";
+        }
     });
 
     function formattaDataItaliana(data) {
@@ -42,7 +78,6 @@
     }
 
     async function caricaPixel() {
-        // Mappa per memorizzare: Data -> { messaggio, colore }
         let datiVenduti = new Map();
         
         try {
@@ -53,7 +88,7 @@
                     let data = formattaDataItaliana(riga[0]);
                     datiVenduti.set(data, {
                         messaggio: riga[1] || "Purchased!",
-                        colore: riga[2] || "#3b82f6" // Se c'è il colore salvato nel foglio, lo usa, altrimenti di default
+                        colore: riga[2] || "#38bdf8"
                     });
                 }
             });
@@ -99,20 +134,23 @@
                     document.getElementById('input-messaggio').value = "";
                     document.getElementById('input-email').value = "";
                     document.getElementById('input-password').value = "";
+                    inputPromo.value = "";
+                    promoFeedback.innerText = "";
+                    prezzoAttuale = 1.00;
+                    prezzoFinaleSpan.innerText = "1€";
+                    codiceScontoApplicato = "";
                     
                     modal.style.display = 'flex';
                     
                     document.getElementById('btn-conferma').onclick = () => {
                         const msg = document.getElementById('input-messaggio').value || "No message";
-                        const coloreScelto = document.getElementById('input-colore').value;
                         const email = document.getElementById('input-email').value;
                         const pwd = document.getElementById('input-password').value;
 
-                        // Strutturiamo la nota PayPal in modo che contenga tutte le info necessarie per lo Script Google
-                        // Formato: DATA | MESSAGGIO | COLORE | EMAIL | PASSWORD
-                        const payloadNota = `${dataStringa} | Msg: ${msg} | Color: ${coloreScelto} | Email: ${email} | Pwd: ${pwd}`;
+                        // Nota strutturata per PayPal comprensiva di prezzo/sconto e dati account
+                        const payloadNota = `${dataStringa} | Msg: ${msg} | Color: ${coloreSelezionato} | Email: ${email} | Pwd: ${pwd} | Promo: ${codiceScontoApplicato || 'None'}`;
                         
-                        window.open(`https://paypal.me/nickpetru/2?note=${encodeURIComponent(payloadNota)}`, "_blank");
+                        window.open(`https://paypal.me/nickpetru/${prezzoAttuale}?note=${encodeURIComponent(payloadNota)}`, "_blank");
                         modal.style.display = 'none';
                     };
                 });
