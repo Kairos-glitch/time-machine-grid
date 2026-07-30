@@ -2,9 +2,9 @@
     --bg-color: #09090b;
     --card-bg: #18181b;
     --border-color: #27272a;
-    --accent-color: #3b82f6;
-    --text-color: #f4f4f5;
-    --text-muted: #a1a1aa;
+    --accent-color: #38bdf8;
+    --text-color: #e0f2fe; 
+    --text-muted: #7dd3fc; 
 }
 
 body { 
@@ -20,7 +20,21 @@ body {
     position: relative; 
 }
 
-/* Rimosso l'effetto scanlines anni 2000 per dare un look pulito e moderno */
+.site-logo {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 40px;
+    height: 40px;
+    z-index: 100;
+}
+
+.site-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.4));
+}
 
 h1 { 
     margin-top: 20px; 
@@ -28,7 +42,7 @@ h1 {
     font-weight: 800;
     font-size: 32px; 
     text-align: center; 
-    background: linear-gradient(135deg, #fff 0%, #a1a1aa 100%);
+    background: linear-gradient(135deg, #e0f2fe 0%, #38bdf8 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
@@ -59,7 +73,7 @@ h1 {
 
 .nav-controls button:hover { 
     border-color: var(--accent-color);
-    background: rgba(59, 130, 246, 0.1);
+    background: rgba(56, 189, 248, 0.1);
 }
 
 .nav-controls button:active { 
@@ -96,7 +110,7 @@ h1 {
 
 .pixel:not(.venduto):hover { 
     border-color: var(--accent-color);
-    background: #27272a;
+    background: #1e293b;
     transform: scale(1.15); 
     z-index: 10; 
 }
@@ -131,8 +145,8 @@ h1 {
     border: 1px solid var(--border-color); 
     padding: 24px; 
     width: 90%; 
-    max-width: 360px; 
-    border-radius: 12px;
+    max-width: 380px; 
+    border-radius: 14px;
     text-align: left; 
     color: var(--text-color); 
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); 
@@ -143,42 +157,103 @@ h1 {
     font-size: 18px;
     text-align: center;
     letter-spacing: 1px;
+    color: var(--accent-color);
 }
 
 .input-group {
-    margin-bottom: 15px;
+    margin-bottom: 14px;
 }
 
 .input-group label {
     display: block;
-    font-size: 12px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
     color: var(--text-muted);
-    margin-bottom: 5px;
+    margin-bottom: 6px;
+    font-weight: 600;
 }
 
-.color-picker-container {
+/* Nuova Palette Colori Pulita */
+.color-palette {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.color-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: transform 0.2s, border-color 0.2s;
+}
+
+.color-dot:hover {
+    transform: scale(1.1);
+}
+
+.color-dot.active {
+    border-color: #fff;
+    transform: scale(1.1);
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+}
+
+.color-picker-wrapper {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px dashed var(--border-color);
+    cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 10px;
+    justify-content: center;
+    background: var(--bg-color);
 }
 
-input[type="color"] {
+.color-picker-wrapper input[type="color"] {
     appearance: none;
     border: none;
-    width: 36px;
-    height: 36px;
-    border-radius: 6px;
+    width: 150%;
+    height: 150%;
     cursor: pointer;
     background: none;
+    transform: translate(-4px, -4px);
 }
 
-input[type="color"]::-webkit-color-swatch-wrapper {
-    padding: 0;
+/* Sezione Codice Sconto */
+.promo-container {
+    display: flex;
+    gap: 8px;
 }
 
-input[type="color"]::-webkit-color-swatch {
+.promo-container input {
+    margin: 0 !important;
+}
+
+#btn-applica-promo {
+    background: var(--border-color);
+    color: var(--text-color);
     border: 1px solid var(--border-color);
+    padding: 0 14px;
     border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 12px;
+    transition: 0.2s;
+    white-space: nowrap;
+}
+
+#btn-applica-promo:hover {
+    border-color: var(--accent-color);
+}
+
+#promo-feedback {
+    font-size: 11px;
+    margin-top: 4px;
+    display: block;
 }
 
 input[type="text"], input[type="email"], input[type="password"], textarea { 
@@ -191,7 +266,7 @@ input[type="text"], input[type="email"], input[type="password"], textarea {
     outline: none; 
     box-sizing: border-box;
     font-family: inherit;
-    font-size: 14px;
+    font-size: 13px;
     resize: none;
 }
 
@@ -218,7 +293,7 @@ input:focus, textarea:focus {
 
 #btn-conferma {
     background: var(--accent-color);
-    color: #fff;
+    color: #09090b;
 }
 
 #btn-conferma:hover {
@@ -238,8 +313,8 @@ input:focus, textarea:focus {
 
 .tooltip { 
     position: absolute; 
-    background: #27272a; 
-    color: #fff; 
+    background: #18181b; 
+    color: var(--text-color); 
     padding: 8px 12px; 
     border-radius: 6px; 
     font-size: 12px; 
