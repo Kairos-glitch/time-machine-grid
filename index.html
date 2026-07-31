@@ -21,9 +21,14 @@
     <img src="logo.png" alt="Logo" onerror="this.style.display='none'">
 </div>
 
-<!-- PULSANTE ACCOUNT IN ALTO A DESTRA -->
+<!-- PULSANTE ACCOUNT CON ICONA OMINO IN ALTO A DESTRA -->
 <div class="user-account-bar">
-    <button id="btn-apri-account" class="account-btn">Account</button>
+    <button id="btn-apri-account" class="account-icon-btn" title="Account">
+        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+    </button>
 </div>
 
 <div id="tooltip" class="tooltip"></div>
@@ -101,8 +106,14 @@
     <h1>TIME CAPSULE</h1>
     
     <div class="nav-controls">
-        <button onclick="cambiaData(-400)">← PREV</button>
-        <button onclick="cambiaData(400)">NEXT →</button>
+        <button class="nav-btn" onclick="cambiaData(-400)">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            PREV
+        </button>
+        <button class="nav-btn" onclick="cambiaData(400)">
+            NEXT
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
     </div>
 
     <div id="counter">
