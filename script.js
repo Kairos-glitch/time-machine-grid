@@ -16,9 +16,11 @@
     const btnApriAccount = document.getElementById('btn-apri-account');
     function aggiornaStatoAccountUI() {
         if (utenteCorrente) {
-            btnApriAccount.innerText = utenteCorrente.split('@')[0] + " (Logout)";
+            btnApriAccount.classList.add('logged');
+            btnApriAccount.title = `Logged as ${utenteCorrente} (Click to Logout)`;
         } else {
-            btnApriAccount.innerText = "Account";
+            btnApriAccount.classList.remove('logged');
+            btnApriAccount.title = "Account";
         }
     }
     aggiornaStatoAccountUI();
@@ -123,8 +125,37 @@
         return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
     }
 
-    function mostraTooltip(testoHtml, pixelRect) {
+    // Funzione per calcolare il contrasto ottimale (chiaro o scuro) e colore semi-trasparente
+    function applicaStileTooltipDinamico(coloreHex) {
+        let hex = coloreHex.replace('#', '');
+        if (hex.length === 3) {
+            hex = hex.split('').map(c => c + c).join('');
+        }
+        const r = parseInt(hex.substr(0, 2), 16);
+        const g = parseInt(hex.substr(2, 2), 16);
+        const b = parseInt(hex.substr(4, 2), 16);
+        
+        // Formula standard di luminanza
+        const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+        const textColor = yiq >= 128 ? '#09090b' : '#f8fafc';
+        
+        tooltip.style.backgroundColor = `rgba(${r}, ${g}, ${b}, 0.85)`;
+        tooltip.style.color = textColor;
+        tooltip.style.borderColor = `rgba(${r}, ${g}, ${b}, 0.5)`;
+    }
+
+    function mostraTooltip(testoHtml, pixelRect, colorePixel = null) {
         tooltip.innerHTML = testoHtml;
+        
+        if (colorePixel) {
+            applicaStileTooltipDinamico(colorePixel);
+        } else {
+            // Stile default per pixel non venduti
+            tooltip.style.backgroundColor = 'rgba(24, 24, 27, 0.9)';
+            tooltip.style.color = '#e0f2fe';
+            tooltip.style.borderColor = 'var(--border-color)';
+        }
+
         tooltip.style.display = 'block';
 
         const screenWidth = window.innerWidth;
@@ -187,8 +218,8 @@
 
                 pixel.addEventListener('mouseenter', () => {
                     const rect = pixel.getBoundingClientRect();
-                    let infoExtra = eMioPixel ? `<br><span style="color:var(--accent-color); font-weight:bold;">[YOUR PIXEL - Click to Edit]</span>` : "";
-                    mostraTooltip(`<strong>${dataStringa}</strong><br>${pixelData.messaggio}${infoExtra}`, rect);
+                    let infoExtra = eMioPixel ? `<br><span style="font-weight:bold; opacity: 0.9;">[YOUR PIXEL - Click to Edit]</span>` : "";
+                    mostraTooltip(`<strong>${dataStringa}</strong><br>${pixelData.messaggio}${infoExtra}`, rect, pixelData.colore);
                 });
                 
                 pixel.addEventListener('click', (e) => {
@@ -212,7 +243,7 @@
                             modalAcquisto.style.display = 'none';
                         };
                     } else {
-                        mostraTooltip(`<strong>${dataStringa}</strong><br>${pixelData.messaggio}`, rect);
+                        mostraTooltip(`<strong>${dataStringa}</strong><br>${pixelData.messaggio}`, rect, pixelData.colore);
                     }
                 });
             } else {
@@ -220,9 +251,8 @@
                     e.stopPropagation();
                     tooltip.style.display = 'none';
 
-                    // Se non è loggato, apre direttamente la modale account a tema anziché l'alert di sistema
                     if (!utenteCorrente) {
-                        isModalLoginMode = false; // Imposta di default su "Crea account" o lascia login
+                        isModalLoginMode = false;
                         accTitle.innerText = "CREATE ACCOUNT";
                         accBtnAzione.innerText = "SIGN UP";
                         accToggleMode.innerText = "Already have an account? Log in";
@@ -291,4 +321,3 @@
 
     caricaPixel();
 })();
-            
