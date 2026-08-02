@@ -306,28 +306,20 @@
                     document.getElementById('btn-conferma').onclick = async () => {
                         const msg = document.getElementById('input-messaggio').value || "No message";
                         
-                        // SE IL PREZZO È 0 (Sconto 100%), SALVA DIRETTAMENTE TRAMITE POST
+                        // SE IL PREZZO È 0 (Sconto 100%), SALVA DIRETTAMENTE SUL FOGLIO GOOGLE
                         if (prezzoAttuale === 0) {
                             const btnConferma = document.getElementById('btn-conferma');
-                            btnConferma.innerText = "Saving...";
+                            btnConferma.innerText = "Claiming...";
                             btnConferma.disabled = true;
 
                             try {
-                                await fetch(GOOGLE_API_URL, {
-                                    method: "POST",
-                                    mode: "no-cors",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify({
-                                        data: dataStringa,
-                                        messaggio: msg,
-                                        colore: coloreSelezionato,
-                                        email: utenteCorrente
-                                    })
-                                });
+                                const urlSalvataggio = `${GOOGLE_API_URL}?action=salva&data=${encodeURIComponent(dataStringa)}&messaggio=${encodeURIComponent(msg)}&colore=${encodeURIComponent(coloreSelezionato)}&email=${encodeURIComponent(utenteCorrente)}`;
+                                
+                                await fetch(urlSalvataggio);
 
                                 modalAcquisto.style.display = 'none';
-                                alert("Pixel claimed successfully for free!");
-                                caricaPixel();
+                                alert("Pixel claimed successfully! Added to the grid.");
+                                caricaPixel(); // Ricarica subito la griglia mostrando il pixel colorato
                             } catch (err) {
                                 console.error("Errore salvataggio:", err);
                                 alert("Error saving pixel.");
