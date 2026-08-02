@@ -4,7 +4,7 @@
     const modalAcquisto = document.getElementById('modal-acquisto');
     const modalAccount = document.getElementById('modal-account');
     const counter = document.getElementById('counter');
-    const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbzDegTFimnMMFQsdTukR360jPfk3byurBwo_GPfiPKGVQ3UAwiZ8CqmiF9PoINOhxpf/exec";
+    const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbzI-LuDHrTk2RfiRmHklID3D0ANz1fz_fAPSFSNTX2osGPRBPpDRBTu9SW9VpKO49gK/exec";
 
     let dataCorrenteVisualizzata = new Date();
     let coloreSelezionato = "#38bdf8";
@@ -125,7 +125,6 @@
         return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
     }
 
-    // Funzione per calcolare il contrasto ottimale (chiaro o scuro) e colore semi-trasparente
     function applicaStileTooltipDinamico(coloreHex) {
         let hex = coloreHex.replace('#', '');
         if (hex.length === 3) {
@@ -135,7 +134,6 @@
         const g = parseInt(hex.substr(2, 2), 16);
         const b = parseInt(hex.substr(4, 2), 16);
         
-        // Formula standard di luminanza
         const yiq = (r * 299 + g * 587 + b * 114) / 1000;
         const textColor = yiq >= 128 ? '#09090b' : '#f8fafc';
         
@@ -150,7 +148,6 @@
         if (colorePixel) {
             applicaStileTooltipDinamico(colorePixel);
         } else {
-            // Stile default per pixel non venduti
             tooltip.style.backgroundColor = 'rgba(24, 24, 27, 0.9)';
             tooltip.style.color = '#e0f2fe';
             tooltip.style.borderColor = 'var(--border-color)';
