@@ -4,7 +4,7 @@
     const modalAcquisto = document.getElementById('modal-acquisto');
     const modalAccount = document.getElementById('modal-account');
     const pixelCountSpan = document.getElementById('pixel-count');
-    const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbyAdsOvndc4AjJ-VpVUQHw-nTTb9O2cCdA91nj-XzdQMU7Mwc3IRw8N23l8Iy2uVWcP/exec";
+    const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbwFJkjLknoOOM65tFK2Ky5E8LARkmtME-py46tn6I7jawTSMmH5plyqsyEVgdplZY8Z/exec";
 
     let dataCorrenteVisualizzata = new Date();
     let coloreSelezionato = "#38bdf8";
@@ -306,7 +306,7 @@
                     document.getElementById('btn-conferma').onclick = async () => {
                         const msg = document.getElementById('input-messaggio').value || "No message";
                         
-                        // SE IL PREZZO È 0 (Sconto 100%), SALVA DIRETTAMENTE SUL FOGLIO GOOGLE
+                        // SE IL PREZZO È 0 (Sconto 100%), SALVA AUTOMATICAMENTE SUL FOGLIO GOOGLE
                         if (prezzoAttuale === 0) {
                             const btnConferma = document.getElementById('btn-conferma');
                             btnConferma.innerText = "Claiming...";
