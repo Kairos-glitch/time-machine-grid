@@ -4,7 +4,7 @@
     const modalAcquisto = document.getElementById('modal-acquisto');
     const modalAccount = document.getElementById('modal-account');
     const counter = document.getElementById('counter');
-    const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbwOnBYbh4vPzquNYty9lLn-uih5feAweFQUVrTXmWKTEleBdIQVfADI2-TB9S_lUCAB/exec";
+    const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbyAdsOvndc4AjJ-VpVUQHw-nTTb9O2cCdA91nj-XzdQMU7Mwc3IRw8N23l8Iy2uVWcP/exec";
 
     let dataCorrenteVisualizzata = new Date();
     let coloreSelezionato = "#38bdf8";
@@ -103,20 +103,54 @@
     const promoFeedback = document.getElementById('promo-feedback');
     const prezzoFinaleSpan = document.getElementById('prezzo-finale');
 
-    btnPromo.addEventListener('click', () => {
-        const codice = inputPromo.value.trim().toUpperCase();
-        if (codice === "TIKTOK" || codice === "TIME50") {
-            prezzoAttuale = 0.50;
-            codiceScontoApplicato = codice;
-            prezzoFinaleSpan.innerText = "0.50€";
-            promoFeedback.style.color = "#22c55e";
-            promoFeedback.innerText = "Promo applied! 50% off";
-        } else {
-            prezzoAttuale = 1.00;
-            codiceScontoApplicato = "";
-            prezzoFinaleSpan.innerText = "1€";
+    // Gestione dinamica dei codici sconto dal Google Sheet (tab "Sconti")
+    btnPromo.addEventListener('click', async () => {
+        const codiceInserito = inputPromo.value.trim().toUpperCase();
+        
+        if (!codiceInserito) {
             promoFeedback.style.color = "#ef4444";
-            promoFeedback.innerText = "Invalid promo code";
+            promoFeedback.innerText = "Please enter a promo code";
+            return;
+        }
+
+        promoFeedback.style.color = "#e0f2fe";
+        promoFeedback.innerText = "Checking promo code...";
+
+        try {
+            const response = await fetch(`${GOOGLE_API_URL}?action=sconti`);
+            const listaSconti = await response.json();
+            
+            const trovato = listaSconti.find(s => s.codice === codiceInserito);
+
+            if (trovato) {
+                // Calcola il prezzo in base al valore dello sconto nel foglio (es. 0.50 o percentuale)
+                let valoreSconto = parseFloat(trovato.valore);
+                
+                if (valoreSconto < 1) {
+                    prezzoAttuale = valoreSconto; // es. 0.50
+                } else if (valoreSconto <= 100) {
+                    prezzoAttuale = 1.00 * (1 - (valoreSconto / 100)); // es. sconto del 50% su 1€
+                } else {
+                    prezzoAttuale = valoreSconto; // Prezzo fisso
+                }
+
+                codiceScontoApplicato = codiceInserito;
+                prezzoFinaleSpan.innerText = prezzoAttuale.toFixed(2) + "€";
+                promoFeedback.style.color = "#22c55e";
+                promoFeedback.innerText = `Promo applied! (${trovato.valore} off)`;
+                document.getElementById('btn-conferma').innerText = `PAY ${prezzoAttuale.toFixed(2)}€`;
+            } else {
+                prezzoAttuale = 1.00;
+                codiceScontoApplicato = "";
+                prezzoFinaleSpan.innerText = "1€";
+                promoFeedback.style.color = "#ef4444";
+                promoFeedback.innerText = "Invalid promo code";
+                document.getElementById('btn-conferma').innerText = "PAY 1€";
+            }
+        } catch (error) {
+            console.error("Errore verifica sconto:", error);
+            promoFeedback.style.color = "#ef4444";
+            promoFeedback.innerText = "Error checking promo";
         }
     });
 
