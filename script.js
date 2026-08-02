@@ -3,7 +3,7 @@
     const tooltip = document.getElementById('tooltip');
     const modalAcquisto = document.getElementById('modal-acquisto');
     const modalAccount = document.getElementById('modal-account');
-    const counter = document.getElementById('counter');
+    const pixelCountSpan = document.getElementById('pixel-count');
     const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbyAdsOvndc4AjJ-VpVUQHw-nTTb9O2cCdA91nj-XzdQMU7Mwc3IRw8N23l8Iy2uVWcP/exec";
 
     let dataCorrenteVisualizzata = new Date();
@@ -49,7 +49,7 @@
         e.preventDefault();
         isModalLoginMode = !isModalLoginMode;
         if (isModalLoginMode) {
-            accTitle.innerText = "USER LOGIN";
+            accTitle.innerText = "USER ACCOUNT";
             accBtnAzione.innerText = "LOG IN";
             accToggleMode.innerText = "Don't have an account? Sign up";
         } else {
@@ -123,15 +123,14 @@
             const trovato = listaSconti.find(s => s.codice === codiceInserito);
 
             if (trovato) {
-                // Calcola il prezzo in base al valore dello sconto nel foglio (es. 0.50 o percentuale)
                 let valoreSconto = parseFloat(trovato.valore);
                 
                 if (valoreSconto < 1) {
-                    prezzoAttuale = valoreSconto; // es. 0.50
+                    prezzoAttuale = valoreSconto;
                 } else if (valoreSconto <= 100) {
-                    prezzoAttuale = 1.00 * (1 - (valoreSconto / 100)); // es. sconto del 50% su 1€
+                    prezzoAttuale = 1.00 * (1 - (valoreSconto / 100));
                 } else {
-                    prezzoAttuale = valoreSconto; // Prezzo fisso
+                    prezzoAttuale = valoreSconto;
                 }
 
                 codiceScontoApplicato = codiceInserito;
@@ -223,10 +222,10 @@
                     });
                 }
             });
-            counter.innerText = `Pixels claimed: ${datiVenduti.size}/400`;
+            if (pixelCountSpan) pixelCountSpan.innerText = datiVenduti.size;
         } catch (e) {
             console.error("Errore caricamento dati:", e);
-            counter.innerText = `Pixels claimed: 0/400`;
+            if (pixelCountSpan) pixelCountSpan.innerText = "0";
         }
 
         tabellone.innerHTML = "";
