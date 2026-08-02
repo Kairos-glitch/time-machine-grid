@@ -103,7 +103,6 @@
     const promoFeedback = document.getElementById('promo-feedback');
     const prezzoFinaleSpan = document.getElementById('prezzo-finale');
 
-    // Gestione dinamica dei codici sconto dal Google Sheet (tab "Sconti")
     btnPromo.addEventListener('click', async () => {
         const codiceInserito = inputPromo.value.trim().toUpperCase();
         
@@ -137,7 +136,7 @@
                 prezzoFinaleSpan.innerText = prezzoAttuale.toFixed(2) + "€";
                 promoFeedback.style.color = "#22c55e";
                 promoFeedback.innerText = `Promo applied! (${trovato.valore} off)`;
-                document.getElementById('btn-conferma').innerText = `PAY ${prezzoAttuale.toFixed(2)}€`;
+                document.getElementById('btn-conferma').innerText = prezzoAttuale === 0 ? "CLAIM FOR FREE" : `PAY ${prezzoAttuale.toFixed(2)}€`;
             } else {
                 prezzoAttuale = 1.00;
                 codiceScontoApplicato = "";
@@ -300,16 +299,47 @@
                     prezzoFinaleSpan.innerText = "1€";
                     codiceScontoApplicato = "";
                     document.getElementById('promo-section').style.display = 'block';
-                    document.getElementById('btn-conferma').innerText = `PAY 1€`;
+                    document.getElementById('btn-conferma').innerText = "PAY 1€";
                     
                     modalAcquisto.style.display = 'flex';
                     
-                    document.getElementById('btn-conferma').onclick = () => {
+                    document.getElementById('btn-conferma').onclick = async () => {
                         const msg = document.getElementById('input-messaggio').value || "No message";
-                        const payloadNota = `${dataStringa} | Msg: ${msg} | Color: ${coloreSelezionato} | Email: ${utenteCorrente} | Promo: ${codiceScontoApplicato || 'None'}`;
                         
-                        window.open(`https://paypal.me/nickpetru/${prezzoAttuale}?note=${encodeURIComponent(payloadNota)}`, "_blank");
-                        modalAcquisto.style.display = 'none';
+                        // SE IL PREZZO È 0 (Sconto 100%), SALVA DIRETTAMENTE TRAMITE POST
+                        if (prezzoAttuale === 0) {
+                            const btnConferma = document.getElementById('btn-conferma');
+                            btnConferma.innerText = "Saving...";
+                            btnConferma.disabled = true;
+
+                            try {
+                                await fetch(GOOGLE_API_URL, {
+                                    method: "POST",
+                                    mode: "no-cors",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                        data: dataStringa,
+                                        messaggio: msg,
+                                        colore: coloreSelezionato,
+                                        email: utenteCorrente
+                                    })
+                                });
+
+                                modalAcquisto.style.display = 'none';
+                                alert("Pixel claimed successfully for free!");
+                                caricaPixel();
+                            } catch (err) {
+                                console.error("Errore salvataggio:", err);
+                                alert("Error saving pixel.");
+                            } finally {
+                                btnConferma.disabled = false;
+                            }
+                        } else {
+                            // PAGAMENTO NORMALE CON PAYPAL
+                            const payloadNota = `${dataStringa} | Msg: ${msg} | Color: ${coloreSelezionato} | Email: ${utenteCorrente} | Promo: ${codiceScontoApplicato || 'None'}`;
+                            window.open(`https://paypal.me/nickpetru/${prezzoAttuale}?note=${encodeURIComponent(payloadNota)}`, "_blank");
+                            modalAcquisto.style.display = 'none';
+                        }
                     };
                 });
                 
