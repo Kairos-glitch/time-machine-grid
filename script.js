@@ -368,7 +368,7 @@
                                     method: "POST",
                                     body: JSON.stringify({
                                         action: "create_checkout",
-                                        amount: 50, // TEST TEMPORANEO A 50 CENTESIMI (MINIMO STRIPE)
+                                        amount: Math.round(prezzoAttuale * 100), // Prezzo reale in centesimi (es. 1.00€ = 100)
                                         pixelId: dataStringa,
                                         messaggio: msg,
                                         colore: coloreSelezionato,
