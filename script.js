@@ -205,6 +205,29 @@
         tooltip.style.top = topPos + 'px';
     }
 
+    // Gestione del ritorno da Stripe (Pagamento Riuscito)
+    window.addEventListener("DOMContentLoaded", async () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const pixel = urlParams.get("pixel");
+        
+        if (pixel) {
+            const msg = urlParams.get("msg");
+            const color = urlParams.get("color");
+            const email = urlParams.get("email");
+            
+            try {
+                const urlSalvataggio = `${GOOGLE_API_URL}?action=salva&data=${encodeURIComponent(pixel)}&messaggio=${encodeURIComponent(msg)}&colore=${encodeURIComponent(color)}&email=${encodeURIComponent(email)}`;
+                await fetch(urlSalvataggio);
+                
+                alert("Payment successful! Your pixel has been registered on the Time Capsule.");
+                window.history.replaceState({}, document.title, window.location.pathname);
+                caricaPixel();
+            } catch (err) {
+                console.error("Errore salvataggio post-pagamento:", err);
+            }
+        }
+    });
+
     async function caricaPixel() {
         let datiVenduti = new Map();
         
@@ -265,11 +288,24 @@
                         modalAcquisto.style.display = 'flex';
                         
                         document.getElementById('btn-conferma').innerText = "UPDATE PIXEL";
-                        document.getElementById('btn-conferma').onclick = () => {
+                        document.getElementById('btn-conferma').onclick = async () => {
                             const msgUpdate = document.getElementById('input-messaggio').value || "Updated message";
-                            const payloadNota = `UPDATE | ${dataStringa} | Msg: ${msgUpdate} | Color: ${coloreSelezionato} | Email: ${utenteCorrente}`;
-                            window.open(`https://paypal.me/nickpetru/0?note=${encodeURIComponent(payloadNota)}`, "_blank");
-                            modalAcquisto.style.display = 'none';
+                            const btnConferma = document.getElementById('btn-conferma');
+                            btnConferma.innerText = "Updating...";
+                            btnConferma.disabled = true;
+
+                            try {
+                                const urlUpdate = `${GOOGLE_API_URL}?action=salva&data=${encodeURIComponent(dataStringa)}&messaggio=${encodeURIComponent(msgUpdate)}&colore=${encodeURIComponent(coloreSelezionato)}&email=${encodeURIComponent(utenteCorrente)}`;
+                                await fetch(urlUpdate);
+                                modalAcquisto.style.display = 'none';
+                                alert("Pixel updated successfully!");
+                                caricaPixel();
+                            } catch (err) {
+                                console.error("Errore aggiornamento:", err);
+                                alert("Error updating pixel.");
+                            } finally {
+                                btnConferma.disabled = false;
+                            }
                         };
                     } else {
                         mostraTooltip(`<strong>${dataStringa}</strong><br>${pixelData.messaggio}`, rect, pixelData.colore);
@@ -305,21 +341,20 @@
                     
                     document.getElementById('btn-conferma').onclick = async () => {
                         const msg = document.getElementById('input-messaggio').value || "No message";
+                        const btnConferma = document.getElementById('btn-conferma');
                         
                         // SE IL PREZZO È 0 (Sconto 100%), SALVA AUTOMATICAMENTE SUL FOGLIO GOOGLE
                         if (prezzoAttuale === 0) {
-                            const btnConferma = document.getElementById('btn-conferma');
                             btnConferma.innerText = "Claiming...";
                             btnConferma.disabled = true;
 
                             try {
                                 const urlSalvataggio = `${GOOGLE_API_URL}?action=salva&data=${encodeURIComponent(dataStringa)}&messaggio=${encodeURIComponent(msg)}&colore=${encodeURIComponent(coloreSelezionato)}&email=${encodeURIComponent(utenteCorrente)}`;
-                                
                                 await fetch(urlSalvataggio);
 
                                 modalAcquisto.style.display = 'none';
                                 alert("Pixel claimed successfully! Added to the grid.");
-                                caricaPixel(); // Ricarica subito la griglia mostrando il pixel colorato
+                                caricaPixel();
                             } catch (err) {
                                 console.error("Errore salvataggio:", err);
                                 alert("Error saving pixel.");
@@ -327,10 +362,38 @@
                                 btnConferma.disabled = false;
                             }
                         } else {
-                            // PAGAMENTO NORMALE CON PAYPAL
-                            const payloadNota = `${dataStringa} | Msg: ${msg} | Color: ${coloreSelezionato} | Email: ${utenteCorrente} | Promo: ${codiceScontoApplicato || 'None'}`;
-                            window.open(`https://paypal.me/nickpetru/${prezzoAttuale}?note=${encodeURIComponent(payloadNota)}`, "_blank");
-                            modalAcquisto.style.display = 'none';
+                            // PAGAMENTO AUTOMATICO CON STRIPE TRAMITE APPS SCRIPT
+                            btnConferma.innerText = "Redirecting to Stripe...";
+                            btnConferma.disabled = true;
+
+                            try {
+                                const response = await fetch(GOOGLE_API_URL, {
+                                    method: "POST",
+                                    body: JSON.stringify({
+                                        action: "create_checkout",
+                                        amount: Math.round(prezzoAttuale * 100), // Converte in centesimi (es. 1€ = 100)
+                                        pixelId: dataStringa,
+                                        messaggio: msg,
+                                        colore: coloreSelezionato,
+                                        email: utenteCorrente,
+                                        successUrl: window.location.href.split('?')[0],
+                                        cancelUrl: window.location.href
+                                    })
+                                });
+                                const dataRes = await response.json();
+                                if (dataRes.status === "success" && dataRes.url) {
+                                    window.location.href = dataRes.url;
+                                } else {
+                                    alert("Error creating payment session: " + (dataRes.message || "Unknown error"));
+                                    btnConferma.disabled = false;
+                                    btnConferma.innerText = `PAY ${prezzoAttuale.toFixed(2)}€`;
+                                }
+                            } catch (err) {
+                                console.error("Errore Stripe:", err);
+                                alert("Network error while connecting to Stripe.");
+                                btnConferma.disabled = false;
+                                btnConferma.innerText = `PAY ${prezzoAttuale.toFixed(2)}€`;
+                            }
                         }
                     };
                 });
