@@ -371,7 +371,7 @@
                                     method: "POST",
                                     body: JSON.stringify({
                                         action: "create_checkout",
-                                        amount: Math.round(prezzoAttuale * 100), // Converte in centesimi (es. 1€ = 100)
+                                        amount: parseInt(Math.round(prezzoAttuale * 100), 10), // CORRETTO QUI: Forza numero intero
                                         pixelId: dataStringa,
                                         messaggio: msg,
                                         colore: coloreSelezionato,
