@@ -343,7 +343,6 @@
                         const msg = document.getElementById('input-messaggio').value || "No message";
                         const btnConferma = document.getElementById('btn-conferma');
                         
-                        // SE IL PREZZO È 0 (Sconto 100%), SALVA AUTOMATICAMENTE SUL FOGLIO GOOGLE
                         if (prezzoAttuale === 0) {
                             btnConferma.innerText = "Claiming...";
                             btnConferma.disabled = true;
@@ -362,7 +361,6 @@
                                 btnConferma.disabled = false;
                             }
                         } else {
-                            // PAGAMENTO AUTOMATICO CON STRIPE TRAMITE APPS SCRIPT
                             btnConferma.innerText = "Redirecting to Stripe...";
                             btnConferma.disabled = true;
 
@@ -371,7 +369,7 @@
                                     method: "POST",
                                     body: JSON.stringify({
                                         action: "create_checkout",
-                                        amount: parseInt(Math.round(prezzoAttuale * 100), 10), // CORRETTO QUI: Forza numero intero
+                                        amount: parseInt(Math.round(prezzoAttuale * 100), 10),
                                         pixelId: dataStringa,
                                         messaggio: msg,
                                         colore: coloreSelezionato,
