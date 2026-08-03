@@ -337,19 +337,35 @@ input:focus, textarea:focus {
 
 .tooltip { 
     position: absolute; 
-    padding: 10px 14px; 
+    padding: 12px 14px; 
     border-radius: 8px; 
     font-size: 12px; 
-    pointer-events: none; 
+    pointer-events: auto; /* Fondamentale per poter cliccare su link e pulsanti nel tooltip */
     display: none; 
     z-index: 11000; 
-    max-width: 250px;
+    max-width: 260px;
     word-wrap: break-word;
     box-sizing: border-box;
     backdrop-filter: blur(8px);
     box-shadow: 0 10px 20px -3px rgba(0, 0, 0, 0.4);
     border: 1px solid rgba(255, 255, 255, 0.2);
     transition: background 0.2s, color 0.2s;
+}
+
+/* Stile ordinato per il contenuto interno del tooltip */
+.tooltip-content-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.tooltip img {
+    width: 100% !important;
+    max-height: 130px !important;
+    object-fit: contain;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.2);
+    display: block;
 }
 
 .footer-note { 
