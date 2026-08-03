@@ -8,7 +8,7 @@
 
     let dataCorrenteVisualizzata = new Date();
     let coloreSelezionato = "#38bdf8";
-    let prezzoAttuale = 1.00;
+    let prezzoAttuale = 0.50; // TEST A 50 CENTESIMI
     let codiceScontoApplicato = "";
 
     let utenteCorrente = localStorage.getItem('tc_user_email') || null;
@@ -127,7 +127,7 @@
                 if (valoreSconto < 1) {
                     prezzoAttuale = valoreSconto;
                 } else if (valoreSconto <= 100) {
-                    prezzoAttuale = 1.00 * (1 - (valoreSconto / 100));
+                    prezzoAttuale = 0.50 * (1 - (valoreSconto / 100)); // Adattato sul prezzo base di prova
                 } else {
                     prezzoAttuale = valoreSconto;
                 }
@@ -138,12 +138,12 @@
                 promoFeedback.innerText = `Promo applied! (${trovato.valore} off)`;
                 document.getElementById('btn-conferma').innerText = prezzoAttuale === 0 ? "CLAIM FOR FREE" : `PAY ${prezzoAttuale.toFixed(2)}€`;
             } else {
-                prezzoAttuale = 1.00;
+                prezzoAttuale = 0.50;
                 codiceScontoApplicato = "";
-                prezzoFinaleSpan.innerText = "1€";
+                prezzoFinaleSpan.innerText = "0.50€";
                 promoFeedback.style.color = "#ef4444";
                 promoFeedback.innerText = "Invalid promo code";
-                document.getElementById('btn-conferma').innerText = "PAY 1€";
+                document.getElementById('btn-conferma').innerText = "PAY 0.50€";
             }
         } catch (error) {
             console.error("Errore verifica sconto:", error);
@@ -205,6 +205,7 @@
         tooltip.style.top = topPos + 'px';
     }
 
+    // GESTIONE DEL RITORNO DA STRIPE (CON PASSAGGIO CORRETTO DEI PARAMETRI)
     window.addEventListener("DOMContentLoaded", async () => {
         const urlParams = new URLSearchParams(window.location.search);
         const pixel = urlParams.get("pixel");
@@ -330,11 +331,11 @@
                     document.getElementById('input-messaggio').value = "";
                     inputPromo.value = "";
                     promoFeedback.innerText = "";
-                    prezzoAttuale = 1.00;
-                    prezzoFinaleSpan.innerText = "1€";
+                    prezzoAttuale = 0.50;
+                    prezzoFinaleSpan.innerText = "0.50€";
                     codiceScontoApplicato = "";
                     document.getElementById('promo-section').style.display = 'block';
-                    document.getElementById('btn-conferma').innerText = "PAY 1€";
+                    document.getElementById('btn-conferma').innerText = "PAY 0.50€";
                     
                     modalAcquisto.style.display = 'flex';
                     
@@ -364,16 +365,19 @@
                             btnConferma.disabled = true;
 
                             try {
+                                // CORRETTO: Passiamo correttamente i parametri msg, color ed email nell'URL di ritorno (successUrl)
+                                const successRedirectUrl = `${window.location.href.split('?')[0]}?pixel=${encodeURIComponent(dataStringa)}&msg=${encodeURIComponent(msg)}&color=${encodeURIComponent(coloreSelezionato)}&email=${encodeURIComponent(utenteCorrente)}`;
+
                                 const response = await fetch(GOOGLE_API_URL, {
                                     method: "POST",
                                     body: JSON.stringify({
                                         action: "create_checkout",
-                                        amount: Math.round(prezzoAttuale * 100), // Prezzo reale in centesimi (es. 1.00€ = 100)
+                                        amount: 50, // 50 centesimi
                                         pixelId: dataStringa,
                                         messaggio: msg,
                                         colore: coloreSelezionato,
                                         email: utenteCorrente,
-                                        successUrl: window.location.href.split('?')[0],
+                                        successUrl: successRedirectUrl,
                                         cancelUrl: window.location.href
                                     })
                                 });
@@ -389,7 +393,7 @@
                                 console.error("Errore Stripe:", err);
                                 alert("Network error while connecting to Stripe.");
                                 btnConferma.disabled = false;
-                                btnConferma.innerText = `PAY ${prezzoAttuale.toFixed(2)}€`;
+                                btnConferma.innerText `PAY ${prezzoAttuale.toFixed(2)}€`;
                             }
                         }
                     };
