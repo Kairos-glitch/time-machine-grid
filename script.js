@@ -205,7 +205,21 @@
         tooltip.style.top = topPos + 'px';
     }
 
-    // GESTIONE DEL RITORNO DA STRIPE (CON PASSAGGIO CORRETTO DEI PARAMETRI)
+    // Funzione di utilità per convertire il file immagine in Base64 (utile per l'invio via JSON/URL)
+    function convertiFileInBase64(file) {
+        return new Promise((resolve, reject) => {
+            if (!file) {
+                resolve("");
+                return;
+            }
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
+    }
+
+    // GESTIONE DEL RITORNO DA STRIPE
     window.addEventListener("DOMContentLoaded", async () => {
         const urlParams = new URLSearchParams(window.location.search);
         const pixel = urlParams.get("pixel");
@@ -214,9 +228,11 @@
             const msg = urlParams.get("msg");
             const color = urlParams.get("color");
             const email = urlParams.get("email");
+            const img = urlParams.get("img") || "";
+            const link = urlParams.get("link") || "";
             
             try {
-                const urlSalvataggio = `${GOOGLE_API_URL}?action=salva&data=${encodeURIComponent(pixel)}&messaggio=${encodeURIComponent(msg)}&colore=${encodeURIComponent(color)}&email=${encodeURIComponent(email)}`;
+                const urlSalvataggio = `${GOOGLE_API_URL}?action=salva&data=${encodeURIComponent(pixel)}&messaggio=${encodeURIComponent(msg)}&colore=${encodeURIComponent(color)}&email=${encodeURIComponent(email)}&link=${encodeURIComponent(link)}&immagine=${encodeURIComponent(img)}`;
                 await fetch(urlSalvataggio);
                 
                 alert("Payment successful! Your pixel has been registered on the Time Capsule.");
@@ -240,7 +256,9 @@
                     datiVenduti.set(data, {
                         messaggio: riga[1] || "Purchased!",
                         colore: riga[2] || "#38bdf8",
-                        proprietario: riga[3] || ""
+                        proprietario: riga[3] || "",
+                        link: riga[4] || "",
+                        immagine: riga[5] || ""
                     });
                 }
             });
@@ -271,7 +289,10 @@
                 pixel.addEventListener('mouseenter', () => {
                     const rect = pixel.getBoundingClientRect();
                     let infoExtra = eMioPixel ? `<br><span style="font-weight:bold; opacity: 0.9;">[YOUR PIXEL - Click to Edit]</span>` : "";
-                    mostraTooltip(`<strong>${dataStringa}</strong><br>${pixelData.messaggio}${infoExtra}`, rect, pixelData.colore);
+                    let imgHtml = pixelData.immagine ? `<br><img src="${pixelData.immagine}" style="max-width:100px; max-height:80px; margin-top:5px; border-radius:4px;" />` : "";
+                    let linkHtml = pixelData.link ? `<br><a href="${pixelData.link}" target="_blank" style="color:inherit; text-decoration:underline; font-size:11px;">Visit Link</a>` : "";
+                    
+                    mostraTooltip(`<strong>${dataStringa}</strong><br>${pixelData.messaggio}${imgHtml}${linkHtml}${infoExtra}`, rect, pixelData.colore);
                 });
                 
                 pixel.addEventListener('click', (e) => {
@@ -283,6 +304,8 @@
                         document.getElementById('modal-main-title').innerText = "EDIT YOUR PIXEL";
                         document.getElementById('data-scelta').innerText = `Date: ${dataStringa}`;
                         document.getElementById('input-messaggio').value = pixelData.messaggio;
+                        document.getElementById('input-link').value = pixelData.link || "";
+                        document.getElementById('input-file-immagine').value = ""; // reset file input
                         document.getElementById('promo-section').style.display = 'none';
                         
                         modalAcquisto.style.display = 'flex';
@@ -290,12 +313,20 @@
                         document.getElementById('btn-conferma').innerText = "UPDATE PIXEL";
                         document.getElementById('btn-conferma').onclick = async () => {
                             const msgUpdate = document.getElementById('input-messaggio').value || "Updated message";
+                            const linkUpdate = document.getElementById('input-link').value.trim();
+                            const fileInput = document.getElementById('input-file-immagine');
+                            
                             const btnConferma = document.getElementById('btn-conferma');
                             btnConferma.innerText = "Updating...";
                             btnConferma.disabled = true;
 
                             try {
-                                const urlUpdate = `${GOOGLE_API_URL}?action=salva&data=${encodeURIComponent(dataStringa)}&messaggio=${encodeURIComponent(msgUpdate)}&colore=${encodeURIComponent(coloreSelezionato)}&email=${encodeURIComponent(utenteCorrente)}`;
+                                let base64Image = pixelData.immagine; // Mantieni la vecchia se non viene cambiata
+                                if (fileInput.files && fileInput.files[0]) {
+                                    base64Image = await convertiFileInBase64(fileInput.files[0]);
+                                }
+
+                                const urlUpdate = `${GOOGLE_API_URL}?action=salva&data=${encodeURIComponent(dataStringa)}&messaggio=${encodeURIComponent(msgUpdate)}&colore=${encodeURIComponent(coloreSelezionato)}&email=${encodeURIComponent(utenteCorrente)}&link=${encodeURIComponent(linkUpdate)}&immagine=${encodeURIComponent(base64Image)}`;
                                 await fetch(urlUpdate);
                                 modalAcquisto.style.display = 'none';
                                 alert("Pixel updated successfully!");
@@ -308,11 +339,13 @@
                             }
                         };
                     } else {
-                        mostraTooltip(`<strong>${dataStringa}</strong><br>${pixelData.messaggio}`, rect, pixelData.colore);
+                        let imgHtml = pixelData.immagine ? `<br><img src="${pixelData.immagine}" style="max-width:100px; max-height:80px; margin-top:5px; border-radius:4px;" />` : "";
+                        let linkHtml = pixelData.link ? `<br><a href="${pixelData.link}" target="_blank" style="color:inherit; text-decoration:underline; font-size:11px;">Visit Link</a>` : "";
+                        mostraTooltip(`<strong>${dataStringa}</strong><br>${pixelData.messaggio}${imgHtml}${linkHtml}`, rect, pixelData.colore);
                     }
                 });
             } else {
-                pixel.addEventListener('click', (e) => {
+                pixel.addEventListener('click', async (e) => {
                     e.stopPropagation();
                     tooltip.style.display = 'none';
 
@@ -329,6 +362,8 @@
                     document.getElementById('modal-main-title').innerText = "CLAIM YOUR PIXEL";
                     document.getElementById('data-scelta').innerText = `Date: ${dataStringa}`;
                     document.getElementById('input-messaggio').value = "";
+                    document.getElementById('input-link').value = "";
+                    document.getElementById('input-file-immagine').value = "";
                     inputPromo.value = "";
                     promoFeedback.innerText = "";
                     prezzoAttuale = 1.00;
@@ -341,14 +376,23 @@
                     
                     document.getElementById('btn-conferma').onclick = async () => {
                         const msg = document.getElementById('input-messaggio').value || "No message";
+                        const linkVal = document.getElementById('input-link').value.trim();
+                        const fileInput = document.getElementById('input-file-immagine');
                         const btnConferma = document.getElementById('btn-conferma');
                         
+                        btnConferma.disabled = true;
+
+                        let base64Image = "";
+                        if (fileInput.files && fileInput.files[0]) {
+                            btnConferma.innerText = "Processing image...";
+                            base64Image = await convertiFileInBase64(fileInput.files[0]);
+                        }
+
                         if (prezzoAttuale === 0) {
                             btnConferma.innerText = "Claiming...";
-                            btnConferma.disabled = true;
 
                             try {
-                                const urlSalvataggio = `${GOOGLE_API_URL}?action=salva&data=${encodeURIComponent(dataStringa)}&messaggio=${encodeURIComponent(msg)}&colore=${encodeURIComponent(coloreSelezionato)}&email=${encodeURIComponent(utenteCorrente)}`;
+                                const urlSalvataggio = `${GOOGLE_API_URL}?action=salva&data=${encodeURIComponent(dataStringa)}&messaggio=${encodeURIComponent(msg)}&colore=${encodeURIComponent(coloreSelezionato)}&email=${encodeURIComponent(utenteCorrente)}&link=${encodeURIComponent(linkVal)}&immagine=${encodeURIComponent(base64Image)}`;
                                 await fetch(urlSalvataggio);
 
                                 modalAcquisto.style.display = 'none';
@@ -362,20 +406,21 @@
                             }
                         } else {
                             btnConferma.innerText = "Redirecting to Stripe...";
-                            btnConferma.disabled = true;
 
                             try {
-                                const successRedirectUrl = `${window.location.href.split('?')[0]}?pixel=${encodeURIComponent(dataStringa)}&msg=${encodeURIComponent(msg)}&color=${encodeURIComponent(coloreSelezionato)}&email=${encodeURIComponent(utenteCorrente)}`;
+                                const successRedirectUrl = `${window.location.href.split('?')[0]}?pixel=${encodeURIComponent(dataStringa)}&msg=${encodeURIComponent(msg)}&color=${encodeURIComponent(coloreSelezionato)}&email=${encodeURIComponent(utenteCorrente)}&link=${encodeURIComponent(linkVal)}&img=${encodeURIComponent(base64Image)}`;
 
                                 const response = await fetch(GOOGLE_API_URL, {
                                     method: "POST",
                                     body: JSON.stringify({
                                         action: "create_checkout",
-                                        amount: Math.round(prezzoAttuale * 100), // Converte il prezzo corrente in centesimi (es. 1.00 -> 100)
+                                        amount: Math.round(prezzoAttuale * 100),
                                         pixelId: dataStringa,
                                         messaggio: msg,
                                         colore: coloreSelezionato,
                                         email: utenteCorrente,
+                                        link: linkVal,
+                                        immagine: base64Image,
                                         locale: "auto",
                                         successUrl: successRedirectUrl,
                                         cancelUrl: window.location.href
