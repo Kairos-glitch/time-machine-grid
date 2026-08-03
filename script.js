@@ -8,7 +8,7 @@
 
     let dataCorrenteVisualizzata = new Date();
     let coloreSelezionato = "#38bdf8";
-    let prezzoAttuale = 0.50; // TEST A 50 CENTESIMI
+    let prezzoAttuale = 1.00; // Prezzo base a 1 euro
     let codiceScontoApplicato = "";
 
     let utenteCorrente = localStorage.getItem('tc_user_email') || null;
@@ -127,7 +127,7 @@
                 if (valoreSconto < 1) {
                     prezzoAttuale = valoreSconto;
                 } else if (valoreSconto <= 100) {
-                    prezzoAttuale = 0.50 * (1 - (valoreSconto / 100)); // Adattato sul prezzo base di prova
+                    prezzoAttuale = 1.00 * (1 - (valoreSconto / 100));
                 } else {
                     prezzoAttuale = valoreSconto;
                 }
@@ -138,12 +138,12 @@
                 promoFeedback.innerText = `Promo applied! (${trovato.valore} off)`;
                 document.getElementById('btn-conferma').innerText = prezzoAttuale === 0 ? "CLAIM FOR FREE" : `PAY ${prezzoAttuale.toFixed(2)}€`;
             } else {
-                prezzoAttuale = 0.50;
+                prezzoAttuale = 1.00;
                 codiceScontoApplicato = "";
-                prezzoFinaleSpan.innerText = "0.50€";
+                prezzoFinaleSpan.innerText = "1.00€";
                 promoFeedback.style.color = "#ef4444";
                 promoFeedback.innerText = "Invalid promo code";
-                document.getElementById('btn-conferma').innerText = "PAY 0.50€";
+                document.getElementById('btn-conferma').innerText = "PAY 1.00€";
             }
         } catch (error) {
             console.error("Errore verifica sconto:", error);
@@ -331,11 +331,11 @@
                     document.getElementById('input-messaggio').value = "";
                     inputPromo.value = "";
                     promoFeedback.innerText = "";
-                    prezzoAttuale = 0.50;
-                    prezzoFinaleSpan.innerText = "0.50€";
+                    prezzoAttuale = 1.00;
+                    prezzoFinaleSpan.innerText = "1.00€";
                     codiceScontoApplicato = "";
                     document.getElementById('promo-section').style.display = 'block';
-                    document.getElementById('btn-conferma').innerText = "PAY 0.50€";
+                    document.getElementById('btn-conferma').innerText = "PAY 1.00€";
                     
                     modalAcquisto.style.display = 'flex';
                     
@@ -371,12 +371,12 @@
                                     method: "POST",
                                     body: JSON.stringify({
                                         action: "create_checkout",
-                                        amount: 50, // 50 centesimi
+                                        amount: Math.round(prezzoAttuale * 100), // Converte il prezzo corrente in centesimi (es. 1.00 -> 100)
                                         pixelId: dataStringa,
                                         messaggio: msg,
                                         colore: coloreSelezionato,
                                         email: utenteCorrente,
-                                        locale: "auto", // <-- GESTIONE AUTOMATICA DELLA LINGUA AGGIUNTA QUI
+                                        locale: "auto",
                                         successUrl: successRedirectUrl,
                                         cancelUrl: window.location.href
                                     })
