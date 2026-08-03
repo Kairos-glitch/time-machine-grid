@@ -4,7 +4,7 @@
     const modalAcquisto = document.getElementById('modal-acquisto');
     const modalAccount = document.getElementById('modal-account');
     const pixelCountSpan = document.getElementById('pixel-count');
-    const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbxl-lvc3DNwW1pfLwBSYRscELPrX_9QRTUTxURAJ84Ml2zg8wuW1Hrm1NCJaw1vOaWI/exec";
+    const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbykHsp6Ghx6cylbMaaW-EwCCSq35NIn5slJpGRhQ5Z-zO7jC_tZdA3zUqxTs78aVpM_/exec";
 
     let dataCorrenteVisualizzata = new Date();
     let coloreSelezionato = "#38bdf8";
