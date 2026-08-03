@@ -368,7 +368,7 @@
                                     method: "POST",
                                     body: JSON.stringify({
                                         action: "create_checkout",
-                                        amount: 2, // TEST TEMPORANEO A 2 CENTESIMI
+                                        amount: 50, // TEST TEMPORANEO A 50 CENTESIMI (MINIMO STRIPE)
                                         pixelId: dataStringa,
                                         messaggio: msg,
                                         colore: coloreSelezionato,
