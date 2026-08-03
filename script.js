@@ -205,7 +205,6 @@
         tooltip.style.top = topPos + 'px';
     }
 
-    // Gestione del ritorno da Stripe (Pagamento Riuscito)
     window.addEventListener("DOMContentLoaded", async () => {
         const urlParams = new URLSearchParams(window.location.search);
         const pixel = urlParams.get("pixel");
@@ -369,7 +368,7 @@
                                     method: "POST",
                                     body: JSON.stringify({
                                         action: "create_checkout",
-                                        amount: parseInt(Math.round(prezzoAttuale * 100), 10),
+                                        amount: 2, // TEST TEMPORANEO A 2 CENTESIMI
                                         pixelId: dataStringa,
                                         messaggio: msg,
                                         colore: coloreSelezionato,
