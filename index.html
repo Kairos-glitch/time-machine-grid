@@ -1,153 +1,149 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-MXS4ZNM27S"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-MXS4ZNM27S');
-    </script>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TIME CAPSULE</title>
+    <title>Time Capsule</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<!-- LOGO VETTORIALE IN ALTO A SINISTRA -->
-<div class="site-logo">
-    <svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M5 22h14"></path>
-        <path d="M5 2h14"></path>
-        <path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"></path>
-        <path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"></path>
-        <path d="M10 12h4" stroke-dasharray="1 2"></path>
-    </svg>
-</div>
-
-<!-- PULSANTE ACCOUNT CON ICONA OMINO IN ALTO A DESTRA -->
-<div class="user-account-bar">
-    <button id="btn-apri-account" class="account-icon-btn" title="Account">
-        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-            <circle cx="12" cy="7" r="4"></circle>
+    <!-- Logo in alto a sinistra -->
+    <div class="site-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
         </svg>
-    </button>
-</div>
-
-<div id="tooltip" class="tooltip"></div>
-
-<!-- MODALE ACCOUNT (LOGIN / REGISTRAZIONE) -->
-<div id="modal-account" class="modal-hidden">
-    <div class="modal-content">
-        <h3 id="account-title">USER ACCOUNT</h3>
-        <p id="account-subtitle" style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px; text-align: center;">Log in to claim and edit your pixels</p>
-        
-        <div class="input-group">
-            <label>Email</label>
-            <input type="email" id="acc-email" placeholder="your@email.com">
-        </div>
-        <div class="input-group">
-            <label>Password</label>
-            <input type="password" id="acc-password" placeholder="••••••••">
-        </div>
-
-        <div id="account-feedback" style="font-size: 11px; margin-bottom: 10px; text-align: center;"></div>
-
-        <div class="modal-btns">
-            <button id="acc-btn-azione">LOG IN</button>
-            <button id="acc-btn-chiudi" class="btn-secondary">CLOSE</button>
-        </div>
-        <div style="text-align: center; margin-top: 12px;">
-            <a href="#" id="acc-toggle-mode" style="font-size: 11px; color: var(--accent-color); text-decoration: none;">Don't have an account? Sign up</a>
-        </div>
     </div>
-</div>
 
-<!-- MODALE GESTIONE PIXEL (ACQUISTO O EDIT) -->
-<div id="modal-acquisto" class="modal-hidden">
-    <div class="modal-content">
-        <h3 id="modal-main-title">CLAIM YOUR PIXEL</h3>
-        <p id="data-scelta" style="font-weight: 600; margin-bottom: 15px; color: var(--accent-color); text-align: center;"></p>
-        
-        <div class="input-group">
-            <label>Your Message (max 150 chars)</label>
-            <textarea id="input-messaggio" placeholder="Write your message, joke or secret..." maxlength="150" rows="3"></textarea>
-        </div>
-
-        <!-- CAMPO LINK -->
-        <div class="input-group">
-            <label>Reference Link (optional)</label>
-            <input type="url" id="input-link" placeholder="https://yourwebsite.com or social link">
-        </div>
-
-        <!-- CAMPO SELETTORE FILE / GALLERIA -->
-        <div class="input-group">
-            <label>Upload Photo from Gallery / Files (optional)</label>
-            <input type="file" id="input-file-immagine" accept="image/*" style="font-size: 12px; color: var(--text-color);">
-            <p style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">Choose an image from your device gallery, files or camera.</p>
-        </div>
-
-        <div class="input-group">
-            <label>Choose Pixel Color</label>
-            <div class="color-palette">
-                <div class="color-dot active" style="background: #38bdf8;" data-color="#38bdf8"></div>
-                <div class="color-dot" style="background: #a855f7;" data-color="#a855f7"></div>
-                <div class="color-dot" style="background: #ec4899;" data-color="#ec4899"></div>
-                <div class="color-dot" style="background: #22c55e;" data-color="#22c55e"></div>
-                <div class="color-dot" style="background: #eab308;" data-color="#eab308"></div>
-                <div class="color-dot" style="background: #f97316;" data-color="#f97316"></div>
-                <div class="color-picker-wrapper" title="Custom color">
-                    <input type="color" id="input-colore-custom" value="#38bdf8">
-                </div>
-            </div>
-        </div>
-
-        <div class="input-group" id="promo-section">
-            <label>Promo Code</label>
-            <div class="promo-container">
-                <input type="text" id="input-promo" placeholder="Enter code">
-                <button id="btn-applica-promo" type="button">Apply</button>
-            </div>
-            <span id="promo-feedback"></span>
-        </div>
-
-        <div class="modal-btns">
-            <button id="btn-conferma">PAY <span id="prezzo-finale">1.00€</span></button>
-            <button id="btn-chiudi" class="btn-secondary">CANCEL</button>
-        </div>
+    <!-- Pulsante Account in alto a destra -->
+    <div class="user-account-bar">
+        <button id="btn-apri-account" class="account-icon-btn" title="Account">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+        </button>
     </div>
-</div>
 
-<div class="container">
     <h1>TIME CAPSULE</h1>
-    
+    <div id="counter">Total Claimed Pixels: <span id="pixel-count">0</span> / 400</div>
+
+    <!-- Controlli di navigazione date -->
     <div class="nav-controls">
         <button class="nav-btn" onclick="cambiaData(-400)">
-            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-            PREV
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"></polyline><polyline points="18 17 13 12 18 7"></polyline></svg>
+            -400 Days
+        </button>
+        <button class="nav-btn" onclick="cambiaData(-20)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            Prev
+        </button>
+        <button class="nav-btn" onclick="cambiaData(20)">
+            Next
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
         </button>
         <button class="nav-btn" onclick="cambiaData(400)">
-            NEXT
-            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            +400 Days
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"></polyline><polyline points="6 17 11 12 6 7"></polyline></svg>
         </button>
     </div>
 
-    <div id="counter">
-        Pixels claimed: <span id="pixel-count">0</span>/400
-    </div>
-
+    <!-- Griglia dei Pixel -->
     <div class="scroller-container">
         <div id="tabellone" class="griglia"></div>
     </div>
-    
-    <div class="footer-note">
-        <p>Each pixel represents one day. Claim your moment in history.</p>
-    </div>
-</div>
 
-<script src="script.js"></script>
+    <!-- Tooltip per l'anteprima -->
+    <div id="tooltip" class="tooltip"></div>
+
+    <!-- Modale Acquisto / Modifica Pixel -->
+    <div id="modal-acquisto" class="modal-hidden">
+        <div class="modal-content">
+            <h3 id="modal-main-title">CLAIM YOUR PIXEL</h3>
+            <p id="data-scelta" style="font-size: 13px; color: var(--text-muted); margin-top: 0; text-align: center;"></p>
+            
+            <div class="input-group">
+                <label>Message / Dedication</label>
+                <textarea id="input-messaggio" rows="3" placeholder="Write something for this day..."></textarea>
+            </div>
+
+            <div class="input-group">
+                <label>External Link (URL)</label>
+                <input type="text" id="input-link" placeholder="https://yourwebsite.com">
+            </div>
+
+            <div class="input-group">
+                <label>Upload Image</label>
+                <input type="file" id="input-file-immagine" accept="image/*" style="font-size: 12px; color: var(--text-muted); padding: 6px 0;">
+            </div>
+
+            <div class="input-group" id="color-picker-section">
+                <label>Pixel Color</label>
+                <div class="color-palette">
+                    <div class="color-dot active" data-color="#38bdf8" style="background: #38bdf8;"></div>
+                    <div class="color-dot" data-color="#f43f5e" style="background: #f43f5e;"></div>
+                    <div class="color-dot" data-color="#10b981" style="background: #10b981;"></div>
+                    <div class="color-dot" data-color="#f59e0b" style="background: #f59e0b;"></div>
+                    <div class="color-dot" data-color="#8b5cf6" style="background: #8b5cf6;"></div>
+                    <div class="color-picker-wrapper" title="Custom color">
+                        <input type="color" id="input-colore-custom" value="#38bdf8">
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-group" id="promo-section">
+                <label>Promo Code</label>
+                <div class="promo-container">
+                    <input type="text" id="input-promo" placeholder="Enter code">
+                    <button id="btn-applica-promo" type="button">Apply</button>
+                </div>
+                <small id="promo-feedback"></small>
+            </div>
+
+            <div style="margin: 14px 0; font-size: 14px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 10px;">
+                <span>Total Price:</span>
+                <strong id="prezzo-finale" style="color: var(--accent-color); font-size: 16px;">1.00€</strong>
+            </div>
+
+            <div class="modal-btns">
+                <button id="btn-chiudi" class="btn-secondary" type="button">Cancel</button>
+                <button id="btn-conferma" type="button">PAY 1.00€</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modale Account (Login / Registrazione) -->
+    <div id="modal-account" class="modal-hidden">
+        <div class="modal-content">
+            <h3 id="account-title">USER ACCOUNT</h3>
+            <p id="account-subtitle" style="font-size: 12px; color: var(--text-muted); text-align: center; margin-top: 0;">Manage your claimed pixels</p>
+            
+            <div class="input-group">
+                <label>Email Address</label>
+                <input type="email" id="acc-email" placeholder="your@email.com">
+            </div>
+
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="acc-password" placeholder="••••••••">
+            </div>
+
+            <small id="account-feedback" style="display:block; margin-bottom: 10px; text-align:center;"></small>
+
+            <div class="modal-btns">
+                <button id="acc-btn-chiudi" class="btn-secondary" type="button">Cancel</button>
+                <button id="acc-btn-azione" type="button">LOG IN</button>
+            </div>
+
+            <div style="text-align: center; margin-top: 14px;">
+                <a href="#" id="acc-toggle-mode" style="font-size: 12px; color: var(--accent-color); text-decoration: none;">Don't have an account? Sign up</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-note">Preserving memories, one pixel at a time.</div>
+
+    <script src="script.js"></script>
 </body>
 </html>
