@@ -11,9 +11,7 @@
     let prezzoAttuale = 1.00;
     let codiceScontoApplicato = "";
 
-    // Rilevamento dispositivo mobile
     const isMobile = /Mobi|Android|iPhone/i.test(navigator.userAgent) || window.innerWidth <= 768;
-
     let utenteCorrente = localStorage.getItem('tc_user_email') || null;
 
     const btnApriAccount = document.getElementById('btn-apri-account');
@@ -208,7 +206,6 @@
         tooltip.style.top = topPos + 'px';
     }
 
-    // Funzione converti file con controllo limite dimensione (Max 2MB)
     function convertiFileInBase64(file) {
         return new Promise((resolve, reject) => {
             if (!file) {
@@ -216,10 +213,10 @@
                 return;
             }
             
-            // Limite massimo: 2 MB (2 * 1024 * 1024 byte)
-            const MAX_SIZE = 2 * 1024 * 1024;
+            // Massimo limite consentito da Google Sheets per singola cella (~35KB per sicurezza)
+            const MAX_SIZE = 35 * 1024; 
             if (file.size > MAX_SIZE) {
-                reject(new Error("Image is too heavy. Maximum allowed size is 2MB."));
+                reject(new Error("Image is too heavy for Google Sheets. Maximum allowed size is ~35KB. Please use a compressed or smaller image."));
                 return;
             }
 
@@ -345,11 +342,6 @@
                             caricaPixel();
                         } catch (err) {
                             console.error("Errore aggiornamento:", err);
-                            if (err.message && err.message.includes("too heavy")) {
-                                // Errore già notificato da alert in ottieniImmagineFinale
-                            } else {
-                                alert("Error updating pixel.");
-                            }
                         } finally {
                             btnConferma.disabled = false;
                             btnConferma.innerText = "UPDATE PIXEL";
@@ -357,7 +349,7 @@
                     };
                 };
 
-                let imgHtml = pixelData.immagine ? `<img src="${pixelData.immagine}" alt="Pixel Image" />` : "";
+                let imgHtml = pixelData.immagine ? `<img src="${pixelData.immagine}" alt="Pixel Image" style="max-width:100%; border-radius:4px; margin-bottom:6px;" />` : "";
                 let msgHtml = `<div><strong>${dataStringa}</strong><br>${pixelData.messaggio}</div>`;
                 
                 let linkHtml = "";
@@ -366,7 +358,7 @@
                     if (!urlPulito.startsWith('http://') && !urlPulito.startsWith('https://')) {
                         urlPulito = 'https://' + urlPulito;
                     }
-                    linkHtml = `<a href="${urlPulito}" target="_blank" style="color:inherit; text-decoration:underline; font-size:11px; word-break:break-all;">Visit Link</a>`;
+                    linkHtml = `<br><a href="${urlPulito}" target="_blank" rel="noopener noreferrer" style="color:inherit; text-decoration:underline; font-size:11px; word-break:break-all; display:inline-block; margin-top:4px;">Visit Link</a>`;
                 }
 
                 if (isMobile) {
