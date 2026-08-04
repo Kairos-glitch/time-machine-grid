@@ -340,7 +340,7 @@ input:focus, textarea:focus {
     padding: 12px 14px; 
     border-radius: 8px; 
     font-size: 12px; 
-    pointer-events: auto; /* Fondamentale per poter cliccare su link e pulsanti nel tooltip */
+    pointer-events: auto; 
     display: none; 
     z-index: 11000; 
     max-width: 260px;
@@ -352,7 +352,6 @@ input:focus, textarea:focus {
     transition: background 0.2s, color 0.2s;
 }
 
-/* Stile ordinato per il contenuto interno del tooltip */
 .tooltip-content-inner {
     display: flex;
     flex-direction: column;
@@ -375,5 +374,4 @@ input:focus, textarea:focus {
     letter-spacing: 1px; 
     text-align: center; 
     text-transform: uppercase; 
-    }
-                     
+                           }
