@@ -4,13 +4,14 @@
     const modalAcquisto = document.getElementById('modal-acquisto');
     const modalAccount = document.getElementById('modal-account');
     const pixelCountSpan = document.getElementById('pixel-count');
-    const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbyMuNyxNiQRJtdpMUoLJU6SAlCVisjV9A9SyA4rQq7tgyrAVcwKX0jLnqn2Ie23XL8g/exec";
+    const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbxtNC_Zvp7Jtbiw__xv6F_Si9OCOXLtQvmnLITrkk6L_ooWm_TxZGwh2q5wBVtF6vIq/exec";
 
     let dataCorrenteVisualizzata = new Date();
     let coloreSelezionato = "#38bdf8";
     let prezzoAttuale = 1.00;
     let codiceScontoApplicato = "";
 
+    // Rilevamento dispositivo mobile
     const isMobile = /Mobi|Android|iPhone/i.test(navigator.userAgent) || window.innerWidth <= 768;
 
     let utenteCorrente = localStorage.getItem('tc_user_email') || null;
@@ -220,6 +221,20 @@
         });
     }
 
+    // Funzione di supporto per estrarre l'immagine finale (priorità al file caricato, altrimenti URL scritto)
+    async function ottieniImmagineFinale(urlInputId, fileInputId, immaginePrecedente = "") {
+        const fileInput = document.getElementById(fileInputId);
+        const urlInput = document.getElementById(urlInputId);
+
+        if (fileInput.files && fileInput.files[0]) {
+            return await convertiFileInBase64(fileInput.files[0]);
+        }
+        if (urlInput && urlInput.value.trim() !== "") {
+            return urlInput.value.trim();
+        }
+        return immaginePrecedente;
+    }
+
     window.addEventListener("DOMContentLoaded", async () => {
         const urlParams = new URLSearchParams(window.location.search);
         const pixel = urlParams.get("pixel");
@@ -286,12 +301,14 @@
                 
                 const eMioPixel = utenteCorrente && pixelData.proprietario.toLowerCase() === utenteCorrente.toLowerCase();
 
+                // Funzione per aprire il modale di modifica
                 const apriModaleEdit = () => {
                     tooltip.style.display = 'none';
                     document.getElementById('modal-main-title').innerText = "EDIT YOUR PIXEL";
                     document.getElementById('data-scelta').innerText = `Date: ${dataStringa}`;
                     document.getElementById('input-messaggio').value = pixelData.messaggio;
                     document.getElementById('input-link').value = pixelData.link || "";
+                    document.getElementById('input-immagine').value = pixelData.immagine.startsWith('data:') ? "" : pixelData.immagine;
                     document.getElementById('input-file-immagine').value = "";
                     document.getElementById('promo-section').style.display = 'none';
                     
@@ -301,19 +318,15 @@
                     document.getElementById('btn-conferma').onclick = async () => {
                         const msgUpdate = document.getElementById('input-messaggio').value || "Updated message";
                         const linkUpdate = document.getElementById('input-link').value.trim();
-                        const fileInput = document.getElementById('input-file-immagine');
                         
                         const btnConferma = document.getElementById('btn-conferma');
                         btnConferma.innerText = "Updating...";
                         btnConferma.disabled = true;
 
                         try {
-                            let base64Image = pixelData.immagine;
-                            if (fileInput.files && fileInput.files[0]) {
-                                base64Image = await convertiFileInBase64(fileInput.files[0]);
-                            }
+                            let immagineFinale = await ottieniImmagineFinale('input-immagine', 'input-file-immagine', pixelData.immagine);
 
-                            const urlUpdate = `${GOOGLE_API_URL}?action=salva&data=${encodeURIComponent(dataStringa)}&messaggio=${encodeURIComponent(msgUpdate)}&colore=${encodeURIComponent(coloreSelezionato)}&email=${encodeURIComponent(utenteCorrente)}&link=${encodeURIComponent(linkUpdate)}&immagine=${encodeURIComponent(base64Image)}`;
+                            const urlUpdate = `${GOOGLE_API_URL}?action=salva&data=${encodeURIComponent(dataStringa)}&messaggio=${encodeURIComponent(msgUpdate)}&colore=${encodeURIComponent(coloreSelezionato)}&email=${encodeURIComponent(utenteCorrente)}&link=${encodeURIComponent(linkUpdate)}&immagine=${encodeURIComponent(immagineFinale)}`;
                             await fetch(urlUpdate);
                             modalAcquisto.style.display = 'none';
                             alert("Pixel updated successfully!");
@@ -365,6 +378,7 @@
                 }
 
             } else {
+                // Pixel libero (disponibile)
                 const apriModaleAcquisto = () => {
                     tooltip.style.display = 'none';
 
@@ -382,6 +396,7 @@
                     document.getElementById('data-scelta').innerText = `Date: ${dataStringa}`;
                     document.getElementById('input-messaggio').value = "";
                     document.getElementById('input-link').value = "";
+                    document.getElementById('input-immagine').value = "";
                     document.getElementById('input-file-immagine').value = "";
                     inputPromo.value = "";
                     promoFeedback.innerText = "";
@@ -396,22 +411,18 @@
                     document.getElementById('btn-conferma').onclick = async () => {
                         const msg = document.getElementById('input-messaggio').value || "No message";
                         const linkVal = document.getElementById('input-link').value.trim();
-                        const fileInput = document.getElementById('input-file-immagine');
                         const btnConferma = document.getElementById('btn-conferma');
                         
                         btnConferma.disabled = true;
+                        btnConferma.innerText = "Processing image...";
 
-                        let base64Image = "";
-                        if (fileInput.files && fileInput.files[0]) {
-                            btnConferma.innerText = "Processing image...";
-                            base64Image = await convertiFileInBase64(fileInput.files[0]);
-                        }
+                        let immagineFinale = await ottieniImmagineFinale('input-immagine', 'input-file-immagine', "");
 
                         if (prezzoAttuale === 0) {
                             btnConferma.innerText = "Claiming...";
 
                             try {
-                                const urlSalvataggio = `${GOOGLE_API_URL}?action=salva&data=${encodeURIComponent(dataStringa)}&messaggio=${encodeURIComponent(msg)}&colore=${encodeURIComponent(coloreSelezionato)}&email=${encodeURIComponent(utenteCorrente)}&link=${encodeURIComponent(linkVal)}&immagine=${encodeURIComponent(base64Image)}`;
+                                const urlSalvataggio = `${GOOGLE_API_URL}?action=salva&data=${encodeURIComponent(dataStringa)}&messaggio=${encodeURIComponent(msg)}&colore=${encodeURIComponent(coloreSelezionato)}&email=${encodeURIComponent(utenteCorrente)}&link=${encodeURIComponent(linkVal)}&immagine=${encodeURIComponent(immagineFinale)}`;
                                 await fetch(urlSalvataggio);
 
                                 modalAcquisto.style.display = 'none';
@@ -427,4 +438,97 @@
                             btnConferma.innerText = "Redirecting to Stripe...";
 
                             try {
-                                const successRedirectUrl = `${window.location.href.split('?')[0]}?pixel=${encodeURIComponent(dataStringa)}&msg=${enco
+                                const successRedirectUrl = `${window.location.href.split('?')[0]}?pixel=${encodeURIComponent(dataStringa)}&msg=${encodeURIComponent(msg)}&color=${encodeURIComponent(coloreSelezionato)}&email=${encodeURIComponent(utenteCorrente)}&link=${encodeURIComponent(linkVal)}&img=${encodeURIComponent(immagineFinale)}`;
+
+                                const response = await fetch(GOOGLE_API_URL, {
+                                    method: "POST",
+                                    body: JSON.stringify({
+                                        action: "create_checkout",
+                                        amount: Math.round(prezzoAttuale * 100),
+                                        pixelId: dataStringa,
+                                        messaggio: msg,
+                                        colore: coloreSelezionato,
+                                        email: utenteCorrente,
+                                        link: linkVal,
+                                        immagine: immagineFinale,
+                                        locale: "auto",
+                                        successUrl: successRedirectUrl,
+                                        cancelUrl: window.location.href
+                                    })
+                                });
+                                const dataRes = await response.json();
+                                if (dataRes.status === "success" && dataRes.url) {
+                                    window.location.href = dataRes.url;
+                                } else {
+                                    alert("Error creating payment session: " + (dataRes.message || "Unknown error"));
+                                    btnConferma.disabled = false;
+                                    btnConferma.innerText = `PAY ${prezzoAttuale.toFixed(2)}€`;
+                                }
+                            } catch (err) {
+                                console.error("Errore Stripe:", err);
+                                alert("Network error while connecting to Stripe.");
+                                btnConferma.disabled = false;
+                                btnConferma.innerText = `PAY ${prezzoAttuale.toFixed(2)}€`;
+                            }
+                        }
+                    };
+                };
+
+                if (isMobile) {
+                    let ultimoClickLibero = 0;
+                    pixel.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const adesso = new Date().getTime();
+                        const tempoTrascorso = adesso - ultimoClickLibero;
+                        const rect = pixel.getBoundingClientRect();
+
+                        if (tempoTrascorso > 300 && tempoTrascorso < 2000) {
+                            apriModaleAcquisto();
+                        } else {
+                            mostraTooltip(`<strong>${dataStringa}</strong><br>Available<br><span style="font-size:11px; opacity:0.9;">[Tap again to Claim]</span>`, rect);
+                        }
+                        ultimoClickLibero = adesso;
+                    });
+                } else {
+                    pixel.addEventListener('mouseenter', () => {
+                        const rect = pixel.getBoundingClientRect();
+                        mostraTooltip(`${dataStringa} (Available)`, rect);
+                    });
+                    pixel.addEventListener('click', () => {
+                        apriModaleAcquisto();
+                    });
+                }
+            }
+
+            tabellone.appendChild(pixel);
+        }
+
+        document.addEventListener('click', () => {
+            tooltip.style.display = 'none';
+        });
+
+        document.getElementById('btn-chiudi').onclick = () => modalAcquisto.style.display = 'none';
+    }
+
+    window.cambiaData = (giorni) => {
+        tooltip.style.display = 'none';
+        const classeAnim = giorni > 0 ? 'slide-left' : 'slide-right';
+        tabellone.classList.add(classeAnim);
+        
+        setTimeout(() => {
+            dataCorrenteVisualizzata.setDate(dataCorrenteVisualizzata.getDate() + giorni);
+            tabellone.style.transition = 'none';
+            tabellone.classList.remove(classeAnim);
+            tabellone.style.opacity = '0';
+            
+            caricaPixel();
+            
+            setTimeout(() => {
+                tabellone.style.transition = 'transform 0.5s ease-in-out, opacity 0.5s ease-in-out';
+                tabellone.style.opacity = '1';
+            }, 50);
+        }, 500);
+    };
+
+    caricaPixel();
+})();
