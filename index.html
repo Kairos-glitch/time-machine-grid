@@ -1,155 +1,111 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-MXS4ZNM27S"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-MXS4ZNM27S');
-    </script>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TIME CAPSULE</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Time Machine Grid</title>
+    <!-- Evita l'errore 404 della favicon -->
+    <link rel="icon" href="data:,">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            background: #1e1e1e;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            max-width: 400px;
+            width: 100%;
+        }
+        input, button {
+            padding: 10px;
+            margin: 10px 0;
+            width: 100%;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        input {
+            background: #2a2a2a;
+            color: #fff;
+            border: 1px solid #444;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        #status {
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+    </style>
 </head>
 <body>
 
-<!-- LOGO VETTORIALE IN ALTO A SINISTRA -->
-<div class="site-logo">
-    <svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M5 22h14"></path>
-        <path d="M5 2h14"></path>
-        <path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"></path>
-        <path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"></path>
-        <path d="M10 12h4" stroke-dasharray="1 2"></path>
-    </svg>
-</div>
-
-<!-- PULSANTE ACCOUNT CON ICONA OMINO IN ALTO A DESTRA -->
-<div class="user-account-bar">
-    <button id="btn-apri-account" class="account-icon-btn" title="Account">
-        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-            <circle cx="12" cy="7" r="4"></circle>
-        </svg>
-    </button>
-</div>
-
-<div id="tooltip" class="tooltip"></div>
-
-<!-- MODALE ACCOUNT (LOGIN / REGISTRAZIONE) -->
-<div id="modal-account" class="modal-hidden">
-    <div class="modal-content">
-        <h3 id="account-title">USER ACCOUNT</h3>
-        <p id="account-subtitle" style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px; text-align: center;">Log in to claim and edit your pixels</p>
-
-        <div class="input-group">
-            <label>Email</label>
-            <input type="email" id="acc-email" placeholder="your@email.com">
-        </div>
-        <div class="input-group">
-            <label>Password</label>
-            <input type="password" id="acc-password" placeholder="••••••••">
-        </div>
-
-        <div id="account-feedback" style="font-size: 11px; margin-bottom: 10px; text-align: center;"></div>
-
-        <div class="modal-btns">
-            <button id="acc-btn-azione">LOG IN</button>
-            <button id="acc-btn-chiudi" class="btn-secondary">CLOSE</button>
-        </div>
-        <div style="text-align: center; margin-top: 12px;">
-            <a href="#" id="acc-toggle-mode" style="font-size: 11px; color: var(--accent-color); text-decoration: none;">Don't have an account? Sign up</a>
-        </div>
-    </div>
-</div>
-
-<!-- MODALE GESTIONE PIXEL (ACQUISTO O EDIT) -->
-<div id="modal-acquisto" class="modal-hidden">
-    <div class="modal-content">
-        <h3 id="modal-main-title">CLAIM YOUR PIXEL</h3>
-        <p id="data-scelta" style="font-weight: 600; margin-bottom: 15px; color: var(--accent-color); text-align: center;"></p>
-
-        <div class="input-group">
-            <label>Your Message (max 150 chars)</label>
-            <textarea id="input-messaggio" placeholder="Write your message, joke or secret..." maxlength="150" rows="3"></textarea>
-        </div>
-
-        <!-- CAMPO LINK -->
-        <div class="input-group">
-            <label>Reference Link (optional)</label>
-            <input type="url" id="input-link" placeholder="https://yourwebsite.com or social link">
-        </div>
-
-        <!-- CAMPO SELETTORE FILE / GALLERIA E URL IMMAGINE -->
-        <div class="input-group">
-            <label>Image URL (optional)</label>
-            <input type="url" id="input-immagine" placeholder="https://... image link">
-            <label style="margin-top: 8px;">Upload Photo from Gallery / Files (optional)</label>
-            <input type="file" id="input-file-immagine" accept="image/*" style="font-size: 12px; color: var(--text-color);">
-            <p style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">Choose an image from your device gallery, files or camera.</p>
-        </div>
-
-        <div class="input-group">
-            <label>Choose Pixel Color</label>
-            <div class="color-palette">
-                <div class="color-dot active" style="background: #38bdf8;" data-color="#38bdf8"></div>
-                <div class="color-dot" style="background: #a855f7;" data-color="#a855f7"></div>
-                <div class="color-dot" style="background: #ec4899;" data-color="#ec4899"></div>
-                <div class="color-dot" style="background: #22c55e;" data-color="#22c55e"></div>
-                <div class="color-dot" style="background: #eab308;" data-color="#eab308"></div>
-                <div class="color-dot" style="background: #f97316;" data-color="#f97316"></div>
-                <div class="color-picker-wrapper" title="Custom color">
-                    <input type="color" id="input-colore-custom" value="#38bdf8">
-                </div>
-            </div>
-        </div>
-
-        <div class="input-group" id="promo-section">
-            <label>Promo Code</label>
-            <div class="promo-container">
-                <input type="text" id="input-promo" placeholder="Enter code">
-                <button id="btn-applica-promo" type="button">Apply</button>
-            </div>
-            <span id="promo-feedback"></span>
-        </div>
-
-        <div class="modal-btns">
-            <button id="btn-conferma">PAY <span id="prezzo-finale">1.00€</span></button>
-            <button id="btn-chiudi" class="btn-secondary">CANCEL</button>
-        </div>
-    </div>
-</div>
-
-<div class="container">
-    <h1>TIME CAPSULE</h1>
-
-    <div class="nav-controls">
-        <button class="nav-btn" onclick="cambiaData(-400)">
-            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-            PREV
-        </button>
-        <button class="nav-btn" onclick="cambiaData(400)">
-            NEXT
-            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-        </button>
+    <div class="container">
+        <h2>Time Machine Grid</h2>
+        <p>Invia i tuoi dati a Google Apps Script</p>
+        
+        <input type="text" id="dataInput" placeholder="Inserisci un valore...">
+        <button id="sendBtn" onclick="sendData()">Invia Dati</button>
+        
+        <div id="status"></div>
     </div>
 
-    <div id="counter">
-        Pixels claimed: <span id="pixel-count">0</span>/400
-    </div>
+    <script>
+        // Sostituisci con il tuo URL Apps Script che termina con /exec
+        const APPS_SCRIPT_URL = 'INSERISCI_QUI_IL_TUO_URL_DI_APPS_SCRIPT';
 
-    <div class="scroller-container">
-        <div id="tabellone" class="griglia"></div>
-    </div>
+        async function sendData() {
+            const inputVal = document.getElementById('dataInput').value;
+            const statusDiv = document.getElementById('status');
 
-    <div class="footer-note">
-        <p>Each pixel represents one day. Claim your moment in history.</p>
-    </div>
-</div>
+            if (!inputVal.trim()) {
+                statusDiv.style.color = '#ff6b6b';
+                statusDiv.innerText = 'Inserisci prima un valore valido.';
+                return;
+            }
 
-<script src="script.js"></script>
+            statusDiv.style.color = '#f39c12';
+            statusDiv.innerText = 'Invio in corso...';
+
+            try {
+                // Esempio di richiesta POST (se il tuo script gestisce doPost)
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', // Spesso necessario con Apps Script per evitare blocchi CORS iniziali
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ value: inputVal })
+                });
+
+                statusDiv.style.color = '#2ecc71';
+                statusDiv.innerText = 'Richiesta inviata con successo!';
+                document.getElementById('dataInput').value = '';
+
+            } catch (error) {
+                console.error('Errore di connessione:', error);
+                statusDiv.style.color = '#ff6b6b';
+                statusDiv.innerText = 'Errore durante la comunicazione con il server.';
+            }
+        }
+    </script>
+
 </body>
 </html>
