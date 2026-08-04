@@ -11,7 +11,6 @@
     let prezzoAttuale = 1.00;
     let codiceScontoApplicato = "";
 
-    // Rilevamento dispositivo mobile
     const isMobile = /Mobi|Android|iPhone/i.test(navigator.userAgent) || window.innerWidth <= 768;
 
     let utenteCorrente = localStorage.getItem('tc_user_email') || null;
@@ -287,7 +286,6 @@
                 
                 const eMioPixel = utenteCorrente && pixelData.proprietario.toLowerCase() === utenteCorrente.toLowerCase();
 
-                // Funzione per aprire il modale di modifica
                 const apriModaleEdit = () => {
                     tooltip.style.display = 'none';
                     document.getElementById('modal-main-title').innerText = "EDIT YOUR PIXEL";
@@ -329,13 +327,12 @@
                     };
                 };
 
-                // Generazione HTML interna ordinata: Immagine sopra, Messaggio, Link sotto
+                // Anteprima immediata: Immagine sopra, Messaggio, Link sotto
                 let imgHtml = pixelData.immagine ? `<img src="${pixelData.immagine}" alt="Pixel Image" />` : "";
                 let msgHtml = `<div><strong>${dataStringa}</strong><br>${pixelData.messaggio}</div>`;
                 let linkHtml = pixelData.link ? `<a href="${pixelData.link}" target="_blank" style="color:inherit; text-decoration:underline; font-size:11px; word-break:break-all;">Visit Link</a>` : "";
 
                 if (isMobile) {
-                    // LOGICA MOBILE: Doppio tocco
                     let ultimoClick = 0;
                     pixel.addEventListener('click', (e) => {
                         e.stopPropagation();
@@ -344,19 +341,16 @@
                         const rect = pixel.getBoundingClientRect();
 
                         if (tempoTrascorso > 300 && tempoTrascorso < 2000) {
-                            // SECONDO TOCCO -> APRE MODALE EDIT (SE MIO) O ACCEDI/ACQUISTA
                             if (eMioPixel) {
                                 apriModaleEdit();
                             }
                         } else {
-                            // PRIMO TOCCO -> MOSTRA ANTEPRIMA NEL TOOLTIP
                             let infoExtra = eMioPixel ? `<br><span style="font-weight:bold; opacity: 0.9; font-size:11px;">[Tap again to Edit]</span>` : "";
                             mostraTooltip(`${imgHtml}${msgHtml}${linkHtml}${infoExtra}`, rect, pixelData.colore);
                         }
                         ultimoClick = adesso;
                     });
                 } else {
-                    // LOGICA DESKTOP: Hover normale + Click diretto per editare se è mio
                     pixel.addEventListener('mouseenter', () => {
                         const rect = pixel.getBoundingClientRect();
                         let infoExtra = eMioPixel ? `<br><span style="font-weight:bold; opacity: 0.9; font-size:11px;">[Your Pixel - Click to Edit]</span>` : "";
@@ -372,7 +366,6 @@
                 }
 
             } else {
-                // Pixel libero (disponibile)
                 const apriModaleAcquisto = () => {
                     tooltip.style.display = 'none';
 
@@ -426,4 +419,13 @@
                                 alert("Pixel claimed successfully! Added to the grid.");
                                 caricaPixel();
                             } catch (err) {
-                     
+                                console.error("Errore salvataggio:", err);
+                                alert("Error saving pixel.");
+                            } finally {
+                                btnConferma.disabled = false;
+                            }
+                        } else {
+                            btnConferma.innerText = "Redirecting to Stripe...";
+
+                            try {
+                                const successRedirectUrl = `${window.lo
