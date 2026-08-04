@@ -206,24 +206,44 @@
         tooltip.style.top = topPos + 'px';
     }
 
-    function convertiFileInBase64(file) {
+    // Funzione di compressione e ridimensionamento automatico di qualsiasi immagine
+    function convertiEComprimiFile(file) {
         return new Promise((resolve, reject) => {
             if (!file) {
                 resolve("");
                 return;
             }
-            
-            // Massimo limite consentito da Google Sheets per singola cella (~35KB per sicurezza)
-            const MAX_SIZE = 35 * 1024; 
-            if (file.size > MAX_SIZE) {
-                reject(new Error("Image is too heavy for Google Sheets. Maximum allowed size is ~35KB. Please use a compressed or smaller image."));
-                return;
-            }
 
             const reader = new FileReader();
             reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = error => reject(error);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    
+                    // Imposta una larghezza massima sicura (es. 400px), mantenendo le proporzioni
+                    const MAX_WIDTH = 400;
+                    if (width > MAX_WIDTH) {
+                        height = Math.round((height * MAX_WIDTH) / width);
+                        width = MAX_WIDTH;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // Converte l'immagine in formato JPEG compresso al 70% per renderla leggerissima
+                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                    resolve(compressedDataUrl);
+                };
+                img.onerror = (error) => reject(error);
+            };
+            reader.onerror = (error) => reject(error);
         });
     }
 
@@ -233,9 +253,10 @@
 
         if (fileInput.files && fileInput.files[0]) {
             try {
-                return await convertiFileInBase64(fileInput.files[0]);
+                return await convertiEComprimiFile(fileInput.files[0]);
             } catch (err) {
-                alert(err.message);
+                console.error("Errore compressione immagine:", err);
+                alert("Error processing the image.");
                 throw err;
             }
         }
