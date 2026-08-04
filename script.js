@@ -208,12 +208,21 @@
         tooltip.style.top = topPos + 'px';
     }
 
+    // Funzione converti file con controllo limite dimensione (Max 2MB)
     function convertiFileInBase64(file) {
         return new Promise((resolve, reject) => {
             if (!file) {
                 resolve("");
                 return;
             }
+            
+            // Limite massimo: 2 MB (2 * 1024 * 1024 byte)
+            const MAX_SIZE = 2 * 1024 * 1024;
+            if (file.size > MAX_SIZE) {
+                reject(new Error("Image is too heavy. Maximum allowed size is 2MB."));
+                return;
+            }
+
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = () => resolve(reader.result);
@@ -221,13 +230,17 @@
         });
     }
 
-    // Funzione di supporto per estrarre l'immagine finale (priorità al file caricato, altrimenti URL scritto)
     async function ottieniImmagineFinale(urlInputId, fileInputId, immaginePrecedente = "") {
         const fileInput = document.getElementById(fileInputId);
         const urlInput = document.getElementById(urlInputId);
 
         if (fileInput.files && fileInput.files[0]) {
-            return await convertiFileInBase64(fileInput.files[0]);
+            try {
+                return await convertiFileInBase64(fileInput.files[0]);
+            } catch (err) {
+                alert(err.message);
+                throw err;
+            }
         }
         if (urlInput && urlInput.value.trim() !== "") {
             return urlInput.value.trim();
@@ -301,7 +314,6 @@
                 
                 const eMioPixel = utenteCorrente && pixelData.proprietario.toLowerCase() === utenteCorrente.toLowerCase();
 
-                // Funzione per aprire il modale di modifica
                 const apriModaleEdit = () => {
                     tooltip.style.display = 'none';
                     document.getElementById('modal-main-title').innerText = "EDIT YOUR PIXEL";
@@ -333,16 +345,29 @@
                             caricaPixel();
                         } catch (err) {
                             console.error("Errore aggiornamento:", err);
-                            alert("Error updating pixel.");
+                            if (err.message && err.message.includes("too heavy")) {
+                                // Errore già notificato da alert in ottieniImmagineFinale
+                            } else {
+                                alert("Error updating pixel.");
+                            }
                         } finally {
                             btnConferma.disabled = false;
+                            btnConferma.innerText = "UPDATE PIXEL";
                         }
                     };
                 };
 
                 let imgHtml = pixelData.immagine ? `<img src="${pixelData.immagine}" alt="Pixel Image" />` : "";
                 let msgHtml = `<div><strong>${dataStringa}</strong><br>${pixelData.messaggio}</div>`;
-                let linkHtml = pixelData.link ? `<a href="${pixelData.link}" target="_blank" style="color:inherit; text-decoration:underline; font-size:11px; word-break:break-all;">Visit Link</a>` : "";
+                
+                let linkHtml = "";
+                if (pixelData.link) {
+                    let urlPulito = pixelData.link.trim();
+                    if (!urlPulito.startsWith('http://') && !urlPulito.startsWith('https://')) {
+                        urlPulito = 'https://' + urlPulito;
+                    }
+                    linkHtml = `<a href="${urlPulito}" target="_blank" style="color:inherit; text-decoration:underline; font-size:11px; word-break:break-all;">Visit Link</a>`;
+                }
 
                 if (isMobile) {
                     let ultimoClick = 0;
@@ -378,7 +403,6 @@
                 }
 
             } else {
-                // Pixel libero (disponibile)
                 const apriModaleAcquisto = () => {
                     tooltip.style.display = 'none';
 
@@ -416,7 +440,14 @@
                         btnConferma.disabled = true;
                         btnConferma.innerText = "Processing image...";
 
-                        let immagineFinale = await ottieniImmagineFinale('input-immagine', 'input-file-immagine', "");
+                        let immagineFinale;
+                        try {
+                            immagineFinale = await ottieniImmagineFinale('input-immagine', 'input-file-immagine', "");
+                        } catch (err) {
+                            btnConferma.disabled = false;
+                            btnConferma.innerText = prezzoAttuale === 0 ? "CLAIM FOR FREE" : `PAY ${prezzoAttuale.toFixed(2)}€`;
+                            return;
+                        }
 
                         if (prezzoAttuale === 0) {
                             btnConferma.innerText = "Claiming...";
