@@ -327,7 +327,6 @@
                     };
                 };
 
-                // Anteprima immediata: Immagine sopra, Messaggio, Link sotto
                 let imgHtml = pixelData.immagine ? `<img src="${pixelData.immagine}" alt="Pixel Image" />` : "";
                 let msgHtml = `<div><strong>${dataStringa}</strong><br>${pixelData.messaggio}</div>`;
                 let linkHtml = pixelData.link ? `<a href="${pixelData.link}" target="_blank" style="color:inherit; text-decoration:underline; font-size:11px; word-break:break-all;">Visit Link</a>` : "";
@@ -428,4 +427,4 @@
                             btnConferma.innerText = "Redirecting to Stripe...";
 
                             try {
-                                const successRedirectUrl = `${window.lo
+                                const successRedirectUrl = `${window.location.href.split('?')[0]}?pixel=${encodeURIComponent(dataStringa)}&msg=${enco
