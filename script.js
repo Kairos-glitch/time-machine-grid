@@ -206,7 +206,6 @@
         tooltip.style.top = topPos + 'px';
     }
 
-    // Funzione di compressione e ridimensionamento automatico di qualsiasi immagine
     function convertiEComprimiFile(file) {
         return new Promise((resolve, reject) => {
             if (!file) {
@@ -224,7 +223,6 @@
                     let width = img.width;
                     let height = img.height;
                     
-                    // Imposta una larghezza massima sicura (es. 400px), mantenendo le proporzioni
                     const MAX_WIDTH = 400;
                     if (width > MAX_WIDTH) {
                         height = Math.round((height * MAX_WIDTH) / width);
@@ -237,7 +235,6 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
 
-                    // Converte l'immagine in formato JPEG compresso al 70% per renderla leggerissima
                     const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
                     resolve(compressedDataUrl);
                 };
